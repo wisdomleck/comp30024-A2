@@ -17,7 +17,7 @@ class Player:
         of the game, select an action to play this turn.
         """
         # put your code here
-    
+
     def update(self, opponent_action, player_action):
         """
         Called at the end of each turn to inform this player of both
@@ -27,4 +27,3 @@ class Player:
         and player_action is this instance's latest chosen action.
         """
         # put your code here
-

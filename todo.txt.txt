@@ -2,5 +2,4 @@ need to do:
 
 decide on representation of board
 decide on initial algorithm
-have a look and understand code
 divide some work

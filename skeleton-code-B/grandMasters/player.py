@@ -1,4 +1,4 @@
-
+from grandMasters.graph import Graph
 class Player:
     def __init__(self, player):
         """
@@ -9,7 +9,7 @@ class Player:
         play as Upper), or the string "lower" (if the instance will play
         as Lower).
         """
-        # put your code here
+        self.game = Graph(player)
 
     def action(self):
         """

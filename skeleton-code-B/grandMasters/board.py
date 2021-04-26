@@ -74,17 +74,17 @@ class Board:
                 u_move = (move[1], move[2])
                 unthrown_uppers -= 1
 
-        self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
+            self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
 
             return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
-        else if player == "LOWER":
+        elif player == "LOWER":
 
             if lower_move[0] != "THROW":
-                t = self.remove_piece(lower_move[1], new_thrown_lowers)
-                l_move = (t, lower_move[2])
+                t = self.remove_piece(move[1], new_thrown_lowers)
+                l_move = (t, move[2])
             else:
-                l_move = (lower_move[1], lower_move[2])
+                l_move = (move[1], move[2])
                 unthrown_lowers -= 1
 
             self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
@@ -143,7 +143,7 @@ class Board:
         upper_moves["SLIDES"] = self.generate_slides(self.thrown_uppers)
         upper_moves["SWINGS"] = self.generate_swings(self.thrown_uppers)
 
-        return {"UPPER": upper_moves, "LOWER":, lower_moves}
+        return {"UPPER": upper_moves, "LOWER": lower_moves}
 
 
     def generate_turns(self):

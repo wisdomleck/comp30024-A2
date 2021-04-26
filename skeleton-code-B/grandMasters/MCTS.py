@@ -39,7 +39,7 @@ class MCTSNode:
     def choose_random_move(self, moves):
         rand_movetype = random.randint(0, 3)
         rand_move = random.randint(0, len(moves[MOVETYPES[rand_movetype]]))
-        return rand_move
+        return moves[MOVETYPES[rand_movetype]][rand_move]
 
     """ After a move is made, pass in the next player's turn into child nodes """
     def switch_player(self):

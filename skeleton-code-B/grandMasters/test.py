@@ -1,6 +1,6 @@
 from graph import Graph
+from board import Board
 import random
-
 
 random.seed()
 def test_moves(root, depth):
@@ -13,3 +13,8 @@ def test_moves(root, depth):
 
 graph = Graph("UPPERS")
 test_moves(graph.root, 0)
+
+"""
+graph = Graph("UPPERS")
+print(graph.root.board.generate_throws("UPPER"))
+"""

@@ -18,15 +18,58 @@ class Board:
         # Move played to reach this board
         self.move = move
 
+    def __eq__(self, other):
+        return self.thrown_uppers == other.thrown_uppers and\
+        self.thrown_lowers == other.thrown_lowers and\
+        self.unthrown_uppers == other.unthrown_uppers and\
+        self.unthrown_lowers == other.unthrown_lowers
+
     def __str__(self):
         return f"Thrown Uppers: {self.thrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nMove:{self.move}\n"
+
+    def is_terminal(self):
+        if self.unthrown_uppers == 0 and not chain.from_iterable(self.thrown_uppers.values())\
+        or self.unthrown_lowers == 0 and not chain.from_iterable(self.thrown_uppers.values()):
+            return True
+        if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
+            return True
+
+        if self.has_invincible("UPPER") and self.remaining_tokens("LOWER") == 1 or\
+        self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1:
+            return True
+
+        if self.turn => 360:
+            return True
+
+        return False
+
+
+    def remaining_tokens(self, player):
+        if player == "UPPER":
+            return chain.from_iterable(self.thrown_uppers.values()) + self.unthrown_uppers
+        else:
+            return chain.from_iterable(self.thrown_lowers.values()) + self.unthrown_lowers
+
+    def has_invincible(self,player):
+        if player == "UPPER":
+            player_throws = self.thrown_uppers
+            other_throws = self.thrown_lowers
+            other_unthrown = self.unthrown_lowers
+        else:
+            player_throws = self.thrown_lowers
+            other_throws = self.thrown_uppers
+            other_unthrown = self.unthrown_uppers
+
+        for key, value in player_throws.items():
+            if value and not other_throws[COUNTERED[key]] and not other_unthrown:
+                return True
+        return False
 
     def apply_turn(self, upper_move, lower_move):
         """
         Given an upper and lower move, create the resultant board from
         apply these moves to the current board.
         """
-
         # Create deepcopy of token related variables
         new_thrown_uppers = deepcopy(self.thrown_uppers)
         new_thrown_lowers = deepcopy(self.thrown_lowers)
@@ -107,8 +150,8 @@ class Board:
         upper_moves = self.generate_throws("UPPER")
         upper_moves += self.generate_slides(self.thrown_uppers)
         upper_moves += self.generate_swings(self.thrown_uppers)
-
-        return list(product(upper_moves, lower_moves))
+        #print(len(lower_moves), len(upper_moves))
+        return upper_moves, lower_moves
 
     def generate_throws(self, player):
         """
@@ -137,6 +180,9 @@ class Board:
         available_tiles = [(r,q) for r in ran_r for q in ran_q if -r-q in ran_q]
 
         # Convert from tile positions to 3-tuple move as defined in specs
+        # Note the token type is unspecified for efficiency, this way only one
+        # throw list is created.
+        throws = []
         for token in COUNTERS.keys():
             throws += [("THROW", token, rq) for rq in available_tiles]
         return throws

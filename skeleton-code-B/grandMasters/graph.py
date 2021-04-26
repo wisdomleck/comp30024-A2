@@ -1,5 +1,4 @@
 from board import Board
-
 class Graph:
     """
     Contains the root node which in turns contains the current in-game board.
@@ -14,6 +13,20 @@ class Graph:
     def update_root(self, root):
         self.root = root
 
+    def SM_solver(self, root):
+        if root.board.winstate():
+            return root.board.eval()
+        if self.player == "UPPER":
+            player_moves, opponent_moves = root.board.generate_turns()
+        else:
+            opponent_moves, player_moves = root.board.generate_turns()
+
+
+        for p_move in player_moves:
+            for o_move in opponent_moves:
+                self.SM_solver(self.root)
+
+
 class Node:
     def __init__(self, board):
         self.board = board
@@ -25,5 +38,7 @@ class Node:
         """
         adjacents = []
         for u_move, l_move in self.board.generate_turns():
-            adjacents.append(Node(self.board.apply_turn(u_move, l_move)))
+            new_board = self.board.apply_turn(u_move, l_move)
+            adjacents.append(Node(new_board))
         return adjacents
+    def new_node(self, player_move, opponent_move):

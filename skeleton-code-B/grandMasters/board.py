@@ -97,6 +97,43 @@ class Board:
         self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
+    """ Same as apply_turn, but for one player. Used for MCTS """
+    def apply_turn_seq(self, move, player):
+
+        # Create deepcopy of token related variables
+        new_thrown_uppers = deepcopy(self.thrown_uppers)
+        new_thrown_lowers = deepcopy(self.thrown_lowers)
+        unthrown_uppers = self.unthrown_uppers
+        unthrown_lowers = self.unthrown_lowers
+
+        """
+        Given a move and a player, execute that move for that player
+        """
+        if player == "UPPER":
+            if upper_move[0] != "THROW":
+                t = self.remove_piece(move[1], new_thrown_uppers)
+                u_move = (t, move[2])
+            else:
+                u_move = (move[1], move[2])
+                unthrown_uppers -= 1
+
+            self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
+
+            return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
+
+        elif player == "LOWER":
+
+            if lower_move[0] != "THROW":
+                t = self.remove_piece(move[1], new_thrown_lowers)
+                l_move = (t, move[2])
+            else:
+                l_move = (move[1], move[2])
+                unthrown_lowers -= 1
+
+            self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
+
+            return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
+
 
     def add_piece(self, piece, mover_dict, other_dict):
         """
@@ -135,6 +172,22 @@ class Board:
     # Assumes the turn is valid but checks
     def check_turn(self, upper_move, lower_move):
         return
+
+    """ The moves passed into the sequential version of MCTS """
+    def generate_seq_turn(self):
+        lower_moves = {"THROWS": [], "SLIDES": [], "SWINGS": []}
+        upper_moves = {"THROWS": [], "SLIDES": [], "SWINGS": []}
+
+        lower_moves["THROWS"] = self.generate_throws("LOWER")
+        lower_moves["SLIDES"] = self.generate_slides(self.thrown_lowers)
+        lower_moves["SWINGS"] = self.generate_swings(self.thrown_lowers)
+
+        upper_moves["THROWS"] = self.generate_throws("UPPER")
+        upper_moves["SLIDES"] = self.generate_slides(self.thrown_uppers)
+        upper_moves["SWINGS"] = self.generate_swings(self.thrown_uppers)
+
+        return {"UPPER": upper_moves, "LOWER": lower_moves}
+
 
     def generate_turns(self):
         """

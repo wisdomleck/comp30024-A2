@@ -3,6 +3,7 @@ from board import Board
 from MCTS import MCTSNode
 from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
 import random
+from greedy_one_move_solver import SillyMoveChooserAI
 
 random.seed()
 """def test_moves(root, depth):
@@ -13,7 +14,7 @@ random.seed()
     rand_pick = random.randint(0, len(adjacents))
     test_moves(adjacents[rand_pick], depth + 1)"""
 
-
+"""
 graph = Graph("UPPERS")
 
 board = graph.root.board
@@ -42,10 +43,33 @@ for i in range(1):
     total_value += result
 print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/1}")
 print(total_value)
-
+"""
 #test_moves(graph.root, 0)
 
 """
 graph = Graph("UPPERS")
 print(graph.root.board.generate_throws("UPPER"))
 """
+
+# TEST one move AI here --------------------------------------------------------------------------------------
+
+singlemoveai = SillyMoveChooserAI("UPPER")
+thrown_uppers = {'s': [(4, -1)], 'p': [], 'r': [(1, -1), (-3, -1), (4, -2), (2, 1)]}
+thrown_lowers = {'s': [(1, 2), (-4, 4), (-1, 3)], 'p': [(-4, 3), (-2, 2), (0, 0)], 'r': []}
+
+testboard = Board(thrown_uppers, thrown_lowers, 2, 2, 50, None)
+print(testboard)
+print_board(part2_to_part1(testboard))
+
+throw, slide = singlemoveai.determine_capture_moves(testboard)
+"""
+print(slide)
+print(throw)
+print(singlemoveai.get_min_distance_total(testboard))
+print(singlemoveai.determine_dist_moves(testboard))"""
+
+sdanger, tdanger = singlemoveai.determine_in_danger_pieces(testboard)
+print(tdanger)
+print(sdanger)
+
+print("NEXT MOVE:", singlemoveai.determine_dist_moves(testboard))

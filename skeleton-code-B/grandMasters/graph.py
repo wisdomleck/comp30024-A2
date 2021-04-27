@@ -1,4 +1,5 @@
-from board import Board
+from grandMasters.board import Board
+
 class Graph:
     """
     Contains the root node which in turns contains the current in-game board.

@@ -59,6 +59,7 @@ class MCTSNode:
 
     """ Chooses a random move from a player's moveset. Used for rollout in MCTS.
         Must pass in the correct player's dictionary of moves
+        EDIT THIS: USE RANDOM.CHOICE instead of doing random indexes
     """
     def choose_random_move(self, moves):
         # Need to determine whether these type of moves are possible, i.e if there are any moves of that type

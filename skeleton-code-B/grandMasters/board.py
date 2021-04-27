@@ -29,7 +29,7 @@ class Board:
 
     def is_terminal(self):
         if self.unthrown_uppers == 0 and not chain.from_iterable(self.thrown_uppers.values())\
-        or self.unthrown_lowers == 0 and not chain.from_iterable(self.thrown_uppers.values()):
+        or self.unthrown_lowers == 0 and not chain.from_iterable(self.unthrown_lowers.values()):
             return True
         if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
             return True
@@ -43,9 +43,43 @@ class Board:
 
         return False
 
-    """ Returns the result of the game, from the perspective of the current board """
+    """ Returns the result of the game, from the perspective of the current board.
+        Denote:
+        1 - win for UPPER
+        0 - tie
+        -1 - win for LOWER
+    """
     def game_result(self):
-        return 1
+
+        if self.unthrown_lowers == 0 and not chain.from_iterable(self.thrown_lowers.values())
+        and (self.unthrown_uppers != 0 or chain.from_iterable(self.thrown_uppers.values())):
+            return 1
+
+        if self.unthrown_uppers == 0 and not chain.from_iterable(self.thrown_uppers.values())
+        and (self.unthrown_lowers != 0 or chain.from_iterable(self.thrown_uppers.values())):
+            return -1
+
+        if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
+            return 0
+
+        if self.has_invincible("UPPER") and self.remaining_tokens("LOWER") == 1 and not self.has_invincible("LOWER"):
+            return 1
+
+        if self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1 and not self.has_invincible("UPPER"):
+            return -1
+
+        if self.turn => 360:
+            return 0
+
+        return 11111
+
+
+
+
+
+
+
+
 
     def remaining_tokens(self, player):
         if player == "UPPER":

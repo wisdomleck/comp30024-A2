@@ -31,6 +31,7 @@ class SillyMoveChooserAI:
             return ("THROW", "s", (0, -1))
 
 
+        # Determine moves that capture enemy pieces
         slide_capture_moves, throw_capture_moves = self.determine_capture_moves(board)
         # gets tiles of our pieces if our current piece is under attack from an enemy slide
         in_danger_slide, in_danger_throw = self.determine_in_danger_pieces(board)

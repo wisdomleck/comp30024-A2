@@ -40,7 +40,7 @@ class Board:
         self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1:
             return True
 
-        if self.turn >= 360:
+        if self.turn >= 10:
             return True
 
         return False
@@ -53,13 +53,13 @@ class Board:
     """
     def game_result(self):
 
-        if self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values()))\
-        and (self.unthrown_uppers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
-            return 1
-
         if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
         and (self.unthrown_lowers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
             return -1
+
+        if self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values()))\
+        and (self.unthrown_uppers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
+            return 1
 
         if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
             return 0
@@ -70,9 +70,10 @@ class Board:
         if self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1 and not self.has_invincible("UPPER"):
             return -1
 
-        if self.turn >= 360:
+        if self.turn >= 10:
             return 0
 
+        # Somehow this gets triggered when is_terminal is True
         return 9999
 
 
@@ -97,6 +98,7 @@ class Board:
                 return True
         return False
 
+    """ seems wasteful to make a new board? """
     def apply_turn(self, upper_move, lower_move):
         """
         Given an upper and lower move, create the resultant board from

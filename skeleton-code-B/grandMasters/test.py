@@ -1,7 +1,7 @@
 from graph import Graph
 from board import Board
 from MCTS import MCTSNode
-
+from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
 import random
 
 random.seed()
@@ -17,7 +17,10 @@ random.seed()
 graph = Graph("UPPERS")
 
 board = graph.root.board
+
 print(board)
+print_board(part2_to_part1(board))
+print(part1_to_part2(part2_to_part1(board)))
 
 mctsnode = MCTSNode(board, "UPPER")
 
@@ -27,7 +30,7 @@ ties = 0
 total_turns = 0
 
 total_value = 0
-for i in range(100):
+for i in range(1):
     result, turns = mctsnode.rollout()
     if result == 1:
         upper_wins += 1
@@ -37,7 +40,7 @@ for i in range(100):
         ties += 1
     total_turns += turns
     total_value += result
-print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/100}")
+print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/1}")
 print(total_value)
 
 #test_moves(graph.root, 0)

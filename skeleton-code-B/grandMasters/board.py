@@ -25,12 +25,14 @@ class Board:
         self.unthrown_lowers == other.unthrown_lowers
 
     def __str__(self):
-        return f"Thrown Uppers: {self.thrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nMove:{self.move}\n"
+        return f"Thrown Uppers: {self.thrown_uppers}\nUnthrown Uppers: {self.unthrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nUnthrown Lowers: {self.unthrown_uppers}\nMove:{self.move}\n"
 
     def is_terminal(self):
-        if self.unthrown_uppers == 0 and not chain.from_iterable(self.thrown_uppers.values())\
-        or self.unthrown_lowers == 0 and not chain.from_iterable(self.unthrown_lowers.values()):
+        if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
+        or self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values())):
+            #print("emptyboard")
             return True
+
         if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
             return True
 
@@ -38,7 +40,7 @@ class Board:
         self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1:
             return True
 
-        if self.turn => 360:
+        if self.turn >= 360:
             return True
 
         return False
@@ -51,12 +53,12 @@ class Board:
     """
     def game_result(self):
 
-        if self.unthrown_lowers == 0 and not chain.from_iterable(self.thrown_lowers.values())
-        and (self.unthrown_uppers != 0 or chain.from_iterable(self.thrown_uppers.values())):
+        if self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values()))\
+        and (self.unthrown_uppers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
             return 1
 
-        if self.unthrown_uppers == 0 and not chain.from_iterable(self.thrown_uppers.values())
-        and (self.unthrown_lowers != 0 or chain.from_iterable(self.thrown_uppers.values())):
+        if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
+        and (self.unthrown_lowers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
             return -1
 
         if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
@@ -68,24 +70,17 @@ class Board:
         if self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1 and not self.has_invincible("UPPER"):
             return -1
 
-        if self.turn => 360:
+        if self.turn >= 360:
             return 0
 
-        return 11111
-
-
-
-
-
-
-
+        return 9999
 
 
     def remaining_tokens(self, player):
         if player == "UPPER":
-            return chain.from_iterable(self.thrown_uppers.values()) + self.unthrown_uppers
+            return len(list(chain.from_iterable(self.thrown_uppers.values()))) + self.unthrown_uppers
         else:
-            return chain.from_iterable(self.thrown_lowers.values()) + self.unthrown_lowers
+            return len(list(chain.from_iterable(self.thrown_lowers.values()))) + self.unthrown_lowers
 
     def has_invincible(self,player):
         if player == "UPPER":

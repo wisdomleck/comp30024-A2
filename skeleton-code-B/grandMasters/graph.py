@@ -30,15 +30,15 @@ class Graph:
 class Node:
     def __init__(self, board):
         self.board = board
-
-    def adjacent_nodes(self):
-        """
+        self.adjacent_nodes = []
+    """def adjacent_nodes(self):
         Generate adjacent nodes to the current nodes, where a node is adjacent
         if its board is reachable with a single move from the current node's board.
-        """
+
         adjacents = []
         for u_move, l_move in self.board.generate_turns():
             new_board = self.board.apply_turn(u_move, l_move)
             adjacents.append(Node(new_board))
         return adjacents
     def new_node(self, player_move, opponent_move):
+        return"""

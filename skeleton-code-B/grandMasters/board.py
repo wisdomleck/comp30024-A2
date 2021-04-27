@@ -251,7 +251,7 @@ class Board:
             if self.unthrown_uppers == 0:
                 return throws
             # Restrict r axis range based off UNTHROWN TOKENS.
-            min_r = max(-4, 4 + (9 - self.unthrown_uppers))
+            min_r = max(-4, 4 - (9 - self.unthrown_uppers))
             ran_r = range(min_r, 5)
 
         else:
@@ -260,7 +260,7 @@ class Board:
                 return throws
             # Restrict r axis range based off off UNTHROWN TOKENS.
             # WHY -3?
-            max_r = min(5, -3 + (self.unthrown_lowers - 9))
+            max_r = min(5, -3 + (9 - self.unthrown_uppers))
             ran_r = range(-4, max_r)
         # Generate all positions where the given playe may throw a token
         available_tiles = [(r,q) for r in ran_r for q in ran_q if -r-q in ran_q]

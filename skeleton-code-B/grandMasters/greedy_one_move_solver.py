@@ -47,29 +47,34 @@ class SillyMoveChooserAI:
         # Go through the potential moves in this order of priority:
         if slide_capture_moves:
             return random.choice(slide_capture_moves)
-        elif throw_capture_moves:
+        if throw_capture_moves:
             return random.choice(throw_capture_moves)
         # Try find a move that dodges enemy slide attack and moves closer
-        elif in_danger_slide:
+        if in_danger_slide:
             two_in_one_moves = []
             for move in dist_closing_moves:
                 for tile in in_danger_slide:
                     if move[1] == tile:
                         two_in_one_moves.append(move)
-            return random.choice(two_in_one_moves)
+
+            if two_in_one_moves:
+                return random.choice(two_in_one_moves)
         # try find a move for a piece that can close distance, but also dodge enemy throw
-        elif in_danger_throw:
+        if in_danger_throw:
             two_in_one_moves = []
             for move in dist_closing_moves:
-                for tile in in_danger_slide:
+                for tile in in_danger_throw:
                     if move[1] == tile:
                         two_in_one_moves.append(move)
-            return random.choice(two_in_one_moves)
-        elif dist_closing_moves:
+
+            if two_in_one_moves:
+                return random.choice(two_in_one_moves)
+
+        # Otherwise just find a productive dist closing move
+        if dist_closing_moves:
             return random.choice(dist_closing_moves)
         # Otherwise just play random
-        else:
-            return random.choice(board.generate_turns())
+        return random.choice(board.generate_turns())
 
     """ Removes moves which result in us having one less token """
     def remove_suicide_moves(self, moves, board):

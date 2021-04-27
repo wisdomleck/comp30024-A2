@@ -73,3 +73,10 @@ print(tdanger)
 print(sdanger)
 
 print("NEXT MOVE:", singlemoveai.determine_dist_moves(testboard))
+
+# Testing for case of throws is 1 but cant find move?
+print("EMPTY BOARD TEST")
+thrown_uppers = {'s':[],'p':[], 'r':[]}
+thrown_lowers = {'s':[],'p':[], 'r':[]}
+testboard = Board(thrown_uppers, thrown_lowers, 1, 1, 50, None)
+print(testboard.generate_turns())

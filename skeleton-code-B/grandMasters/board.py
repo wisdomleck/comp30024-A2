@@ -43,6 +43,9 @@ class Board:
 
         return False
 
+    """ Returns the result of the game, from the perspective of the current board """
+    def game_result(self):
+        return 1
 
     def remaining_tokens(self, player):
         if player == "UPPER":

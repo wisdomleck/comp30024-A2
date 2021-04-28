@@ -1,4 +1,6 @@
-from grandMasters.board import Board
+from board import Board
+import random
+from itertools import product
 
 class Graph:
     """
@@ -31,15 +33,20 @@ class Graph:
 class Node:
     def __init__(self, board):
         self.board = board
-        self.adjacent_nodes = []
-    """def adjacent_nodes(self):
-        Generate adjacent nodes to the current nodes, where a node is adjacent
-        if its board is reachable with a single move from the current node's board.
 
+    def adjacent_nodes(self):
+        moves = 0
+        """Generate adjacent nodes to the current nodes, where a node is adjacent
+        if its board is reachable with a single move from the current node's board."""
         adjacents = []
-        for u_move, l_move in self.board.generate_turns():
-            new_board = self.board.apply_turn(u_move, l_move)
-            adjacents.append(Node(new_board))
+        upper_moves, lower_moves = self.board.generate_turns()
+        for umove in upper_moves:
+            for lmove in lower_moves:
+                moves += 1
+                boardcopy = self.board.apply_turn(umove, lmove)
+                adjacents.append(Node(boardcopy))
+        print(moves)
+        print(len(upper_moves), len(lower_moves))
         return adjacents
     def new_node(self, player_move, opponent_move):
-        return"""
+        return

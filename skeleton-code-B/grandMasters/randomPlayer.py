@@ -1,7 +1,7 @@
-from grandMasters.graph import Graph
-from grandMasters.board import Board
+from graph import Graph
+from board import Board
 
-from grandMasters.random_ai import RandomAI
+from random_ai import RandomAI
 
 class Player:
     def __init__(self, player):

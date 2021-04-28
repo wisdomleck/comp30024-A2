@@ -98,7 +98,7 @@ class MCTSNode:
     """
     def rollout(self):
         current_board = self.board
-        print("NEW GAME")
+        #print("NEW GAME")
         while not current_board.is_terminal():
             rand_move_p1 = self.choose_random_move(current_board.generate_seq_turn()[self.player])
             rand_move_p2 = self.choose_random_move(current_board.generate_seq_turn()[self.switch_player()])
@@ -108,7 +108,7 @@ class MCTSNode:
             else:
                 current_board = current_board.apply_turn(rand_move_p2, rand_move_p1)
             #print(current_board)
-            print_board(part2_to_part1(current_board))
-            print(current_board)
-            print(part1_to_part2(part2_to_part1(current_board)))
+            #print_board(part2_to_part1(current_board))
+            #print(current_board)
+            #print(part1_to_part2(part2_to_part1(current_board)))
         return current_board.game_result(), current_board.turn

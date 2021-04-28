@@ -98,6 +98,51 @@ class Board:
                 return True
         return False
 
+
+
+    """ NEED TO HANDLE CAPTURES FOR update FUNCTIONS """
+
+    """ Updates the corresponding dictionary with a slide or swing move """
+    def update_slide_swing(self, dict1, from1, to1):
+        for key, value in dict1.items():
+            for tile in value:
+                if tile == from1:
+                    dict[key].remove(from1)
+                    dict[key].append(to1)
+        return
+
+    """ Updates the dictionary with a throw move """
+    def update_throw(self, dict, piece, to):
+        dict[piece].append(to)
+        return
+
+
+    """ Apply a upper and lower move to the board """
+    def apply_turn2(self, upper_move, lower_move):
+        boardcopy = self.board
+
+        # Slide or swing
+        if upper_move[0] != "THROW":
+            coord_from = upper_move[1]
+            coord_to = upper_move[2]
+            update_slide_swing(boardcopy.thrown_uppers, coord_from, coord_to)
+        # Throw
+        else:
+            update_throw(boardcopy.thrown_uppers, upper_move[1], upper_move[2])
+            boardcopy.unthrown_uppers -= 1
+
+        # Slide or swing
+        if lower_move[0] != "THROW":
+            coord_from = lower_move[1]
+            coord_to = lower_move[2]
+            update_slide_swing(boardcopy.thrown_lowers, coord_from, coord_to)
+        # Throw
+        else:
+            update_throw(boardcopy.thrown_lowers, lower_move[1], lower_move[2])
+            boardcopy.unthrown_lowers -= 1
+
+        return boardcopy
+
     """ seems wasteful to make a new board? """
     def apply_turn(self, upper_move, lower_move):
         """
@@ -129,6 +174,7 @@ class Board:
         # Update deepcopied thrown piece dictionaries and create new board object
         self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
         self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
+
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
     """ Same as apply_turn, but for one player. Used for MCTS """
@@ -194,8 +240,7 @@ class Board:
         Remove token exisiting on input position from the movers thrown dictionary.
         Return the token type.
         """
-
-        for key,value in mover_dict.items():
+        for key, value in mover_dict.items():
             if pos in value:
                 value.remove(pos)
                 return key
@@ -260,7 +305,7 @@ class Board:
                 return throws
             # Restrict r axis range based off off UNTHROWN TOKENS.
             # WHY -3?
-            max_r = min(5, -3 + (9 - self.unthrown_uppers))
+            max_r = min(5, -3 + (9 - self.unthrown_lowers))
             ran_r = range(-4, max_r)
         # Generate all positions where the given playe may throw a token
         available_tiles = [(r,q) for r in ran_r for q in ran_q if -r-q in ran_q]

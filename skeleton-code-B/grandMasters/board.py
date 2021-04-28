@@ -27,23 +27,17 @@ class Board:
     def __str__(self):
         return f"Thrown Uppers: {self.thrown_uppers}\nUnthrown Uppers: {self.unthrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nUnthrown Lowers: {self.unthrown_uppers}\nMove:{self.move}\n"
 
-    def is_terminal(self):
-        if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
-        or self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values())):
-            #print("emptyboard")
-            return True
+    def is_win(self, player):
+        other = "LOWER" if player == "UPPER" else "UPPER"
 
-        if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
-            return True
+        return self.remaining_tokens(player) and not self.remaining_tokens(other) or\
+        self.has_invincible(player) and\
+        not self.has_invincible(other) and\
+        self.remaining_tokens(other) == 1
 
-        if self.has_invincible("UPPER") and self.remaining_tokens("LOWER") == 1 or\
-        self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1:
-            return True
-
-        if self.turn >= 360:
-            return True
-
-        return False
+    def is_draw(self):
+        return not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER") or\
+        self.has_invincible("UPPER") and self.has_invincible("LOWER") or self.turn >= 360
 
     """ Returns the result of the game, from the perspective of the current board.
         Denote:

@@ -14,6 +14,23 @@ Students
 import numpy as np
 import scipy.optimize as opt
 
+def get_alpha(alpha, a, b, P, O):
+    P.append(np.full())
+    e = P[a, :]
+    f = O[:,b]
+
+    P = np.delete(a, axis = 0)
+    P = np.delete(b, axis = 1)
+    zeros = np.zeros(len(e))
+    ones_1 = np.ones(len(e))
+    ones_2 = np.ones(shape = (len(e), len(e)))
+
+    res = opt.linprog(
+    c= -e, A_ub=P.T, b_ub=f, A_eq = ones_2,
+    b_eq = ones_1, bounds = (zeros, ones_1)
+    )
+
+
 def solve_game(V, maximiser=True, rowplayer=True):
     """
     Given a utility matrix V for a zero-sum game, compute a mixed-strategy

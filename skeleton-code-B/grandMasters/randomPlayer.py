@@ -1,6 +1,7 @@
 from grandMasters.graph import Graph
 from grandMasters.board import Board
-from grandMasters.greedy_one_move_solver import SillyMoveChooserAI
+
+from grandMasters.random_ai import RandomAI
 
 class Player:
     def __init__(self, player):
@@ -21,15 +22,16 @@ class Player:
 
         empty_start = {'s':[],'p':[], 'r':[]}
         self.own_board = Board(empty_start, empty_start, 9, 9, 0, None)
-        self.ai = SillyMoveChooserAI(self.us)
+
+        self.ai = RandomAI(self.us)
 
     def action(self):
         """
         Called at the beginning of each turn. Based on the current state
         of the game, select an action to play this turn.
         """
-        # put your code here
         return self.ai.choose_next_move(self.own_board)
+        # put your code here
 
     def update(self, opponent_action, player_action):
         """

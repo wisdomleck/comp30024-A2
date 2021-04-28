@@ -2,7 +2,7 @@ from itertools import product, chain
 from copy import deepcopy
 
 COUNTERS = {'s':'p', 'p':'r', 'r':'s'}
-COUNTERED = {'p':'s', 'r':'p', 's':'p'}
+COUNTERED = {'p':'s', 'r':'p', 's':'r'}
 class Board:
     def __init__(self, thrown_uppers, thrown_lowers, unthrown_uppers, unthrown_lowers, turn, move):
         # Dictionaries to hold upper and lower pieces. Key: piece types, value: positions
@@ -25,7 +25,7 @@ class Board:
         self.unthrown_lowers == other.unthrown_lowers
 
     def __str__(self):
-        return f"Thrown Uppers: {self.thrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nMove:{self.move}\n"
+        return f"Thrown Uppers: {self.thrown_uppers}\nUnthrown Uppers: {self.unthrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nUnthrown Lowers: {self.unthrown_uppers}\nMove:{self.move}\n"
 
     def is_win(self, player):
         other = "LOWER" if player == "UPPER" else "UPPER"
@@ -38,6 +38,37 @@ class Board:
     def is_draw(self):
         return not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER") or\
         self.has_invincible("UPPER") and self.has_invincible("LOWER") or self.turn >= 360
+
+    """ Returns the result of the game, from the perspective of the current board.
+        Denote:
+        1 - win for UPPER
+        0 - tie
+        -1 - win for LOWER
+    """
+    def game_result(self):
+
+        if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
+        and (self.unthrown_lowers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
+            return -1
+
+        if self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values()))\
+        and (self.unthrown_uppers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
+            return 1
+
+        if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
+            return 0
+
+        if self.has_invincible("UPPER") and self.remaining_tokens("LOWER") == 1 and not self.has_invincible("LOWER"):
+            return 1
+
+        if self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1 and not self.has_invincible("UPPER"):
+            return -1
+
+        if self.turn >= 360:
+            return 0
+
+        # Somehow this gets triggered when is_terminal is True
+        return 9999
 
 
     def remaining_tokens(self, player):
@@ -61,6 +92,7 @@ class Board:
                 return True
         return False
 
+    """ seems wasteful to make a new board? """
     def apply_turn(self, upper_move, lower_move):
         """
         Given an upper and lower move, create the resultant board from
@@ -106,7 +138,7 @@ class Board:
         Given a move and a player, execute that move for that player
         """
         if player == "UPPER":
-            if upper_move[0] != "THROW":
+            if move[0] != "THROW":
                 t = self.remove_piece(move[1], new_thrown_uppers)
                 u_move = (t, move[2])
             else:
@@ -115,11 +147,9 @@ class Board:
 
             self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
 
-            return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
-
         elif player == "LOWER":
 
-            if lower_move[0] != "THROW":
+            if move[0] != "THROW":
                 t = self.remove_piece(move[1], new_thrown_lowers)
                 l_move = (t, move[2])
             else:
@@ -128,7 +158,7 @@ class Board:
 
             self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
 
-            return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
+        return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, None)
 
 
     def add_piece(self, piece, mover_dict, other_dict):
@@ -214,16 +244,17 @@ class Board:
             # Return empty list if throws are exhausted.
             if self.unthrown_uppers == 0:
                 return throws
-            # Restrict r axis range based off turn.
-            min_r = max(-4, 4 - self.turn)
+            # Restrict r axis range based off UNTHROWN TOKENS.
+            min_r = max(-4, 4 - (9 - self.unthrown_uppers))
             ran_r = range(min_r, 5)
 
         else:
             # Return empty list if throws are exhausted.
             if self.unthrown_lowers == 0:
                 return throws
-            # Restrict r axis range based off turn.
-            max_r = min(5, -3 + self.turn)
+            # Restrict r axis range based off off UNTHROWN TOKENS.
+            # WHY -3?
+            max_r = min(5, -3 + (9 - self.unthrown_uppers))
             ran_r = range(-4, max_r)
         # Generate all positions where the given playe may throw a token
         available_tiles = [(r,q) for r in ran_r for q in ran_q if -r-q in ran_q]

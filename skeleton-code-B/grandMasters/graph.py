@@ -1,4 +1,6 @@
 from board import Board
+from linearprograms import solve_game, get_alpha, get_beta
+import numpy as np
 class Graph:
     """
     Contains the root node which in turns contains the current in-game board.
@@ -13,18 +15,27 @@ class Graph:
     def update_root(self, root):
         self.root = root
 
-    def SM_solver(self, root):
-        if root.board.winstate():
-            return root.board.eval()
+    def SM_solver(self, state):
+        if state.is_terminal():
+            if state.board.is_win(self.player):
+                return 1
+            elif state.board.is_draw():
+                return 0
+            else:
+                return -1
+
         if self.player == "UPPER":
-            player_moves, opponent_moves = root.board.generate_turns()
+            player_moves, opponent_moves = state.board.generate_turns()
         else:
-            opponent_moves, player_moves = root.board.generate_turns()
+            opponent_moves, player_moves = state.board.generate_turns()
 
-
-        for p_move in player_moves:
-            for o_move in opponent_moves:
-                self.SM_solver(self.root)
+        sim_matrix = []
+        for m in player_moves:
+            sim_row = []
+            for n in opponent_moves:
+                new_node = self.state.generate_node(self.player, m, n)
+                sim_row.append(SM_solver, new_node)
+        return solve_game(sim_matrix)[1]
 
 
 class Node:
@@ -41,4 +52,12 @@ class Node:
             new_board = self.board.apply_turn(u_move, l_move)
             adjacents.append(Node(new_board))
         return adjacents
-    def new_node(self, player_move, opponent_move):
+
+    def is_terminal(self):
+        return self.board.is_draw() or self.board.is_win("UPPER") or self.board.is_win("LOWER")
+
+    def generate_node(self, player, p, o):
+        if player == "UPPER":
+            return Node(self.board.apply_turn(p, o))
+        else:
+            return Node(self.board.apply_turn(o, p))

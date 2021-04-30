@@ -72,19 +72,19 @@ class MCTSNode:
 
         # Throw, slide or swing
         if len(possible_moves) == 1:
-            rand_movetype = 0
+            rand_movetype = possible_moves[0]
         else:
-            rand_movetype = random.randint(0, len(possible_moves)-1)
+            rand_movetype = random.choice(possible_moves)
 
 
         # Retrieve a random index to a move in the dictionary
-        if len(moves[possible_moves[rand_movetype]]) - 1 == 0:
-            rand_move = 0
+        if len(moves[rand_movetype]) - 1 == 0:
+            rand_move = moves[rand_movetype][0]
         else:
-            rand_move = random.randint(0, len(moves[possible_moves[rand_movetype]]) - 1)
+            rand_move = random.choice(moves[rand_movetype])
 
         # Index the move in the dict
-        return moves[possible_moves[rand_movetype]][rand_move]
+        return moves[rand_movetype][rand_move]
 
     """ After a move is made, pass in the next player's turn into child nodes """
     def switch_player(self):
@@ -99,9 +99,15 @@ class MCTSNode:
     def rollout(self):
         current_board = self.board
         #print("NEW GAME")
-        while not current_board.is_terminal():
-            rand_move_p1 = self.choose_random_move(current_board.generate_seq_turn()[self.player])
-            rand_move_p2 = self.choose_random_move(current_board.generate_seq_turn()[self.switch_player()])
+        while not current_board.is_win("UPPER") or current_board.is_draw() or current_board.is_win("LOWER"):
+            # Do this in order to randomize between movetype, then randomise between move
+            #rand_move_p1 = self.choose_random_move(current_board.generate_seq_turn()[self.player])
+            #rand_move_p2 = self.choose_random_move(current_board.generate_seq_turn()[self.switch_player()])
+
+            # Do this for just random moves altogether
+            upper, lower = current_board.generate_turns()
+            rand_move_p1 = random.choice(upper)
+            rand_move_p2 = random.choice(lower)
 
             if self.player == "UPPER":
                 current_board = current_board.apply_turn(rand_move_p1, rand_move_p2)
@@ -112,3 +118,8 @@ class MCTSNode:
             #print(current_board)
             #print(part1_to_part2(part2_to_part1(current_board)))
         return current_board.game_result(), current_board.turn
+
+
+    def select(self):
+
+        return

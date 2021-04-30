@@ -46,29 +46,16 @@ class Board:
         -1 - win for LOWER
     """
     def game_result(self):
-
-        if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
-        and (self.unthrown_lowers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
+        other = "LOWER" if self.player == "UPPER" else "UPPER"
+        if is_win(self.player):
+            return 1
+        elif is_win(other):
             return -1
 
-        if self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values()))\
-        and (self.unthrown_uppers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
-            return 1
-
-        if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
+        if is_draw():
             return 0
-
-        if self.has_invincible("UPPER") and self.remaining_tokens("LOWER") == 1 and not self.has_invincible("LOWER"):
-            return 1
-
-        if self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1 and not self.has_invincible("UPPER"):
-            return -1
-
-        if self.turn >= 360:
-            return 0
-
         # Somehow this gets triggered when is_terminal is True
-        return 9999
+        return 777777
 
 
     def remaining_tokens(self, player):
@@ -110,11 +97,60 @@ class Board:
         dict[piece].append(to)
         return
 
+    """ After the simultaneous move, resolve any captures that occurred """
+    def resolve_conflicts(self, upper_thrown, lower_thrown):
+        upper_pieces = upper_thrown.items()
+        lower_pieces = lower_thrown.items()
+
+        # Pieces to remove
+        remove_list_upper = set()
+        remove_list_lower = set()
+
+        # Check suicide moves for upper
+        for i in range(0, len(upper_pieces)):
+            for j in range(i, len(upper_pieces)):
+                # If coords are the same, check if one counters another
+                if upper_pieces[i][1] == upper_pieces[j][1]:
+                    if COUNTERS[upper_pieces[i][0]] == upper_pieces[j][0]:
+                        remove_list_upper.add(upper_pieces[j])
+                    if COUNTERS[upper_pieces[j][0]] == upper_pieces[i][0]:
+                        remove_list_upper.add(upper_pieces[i])
+
+        # Check suicide moves for upper
+        for i in range(0, len(lower_pieces)):
+            for j in range(i, len(lower_pieces)):
+                # If coords are the same, check if one counters another
+                if lower_pieces[i][1] == lower_pieces[j][1]:
+                    if COUNTERS[lower_pieces[i][0]] == lower_pieces[j][0]:
+                        remove_list_lower.add(lower_pieces[j])
+                    if COUNTERS[upper_pieces[j][0]] == lower_pieces[i][0]:
+                        remove_list_lower.add(lower_pieces[i])
+
+        # Check for captures between upper/lower pieces now
+        for upper, coord_upper in upper_pieces:
+            for lower, coord_lower in lower_pieces:
+                if coord_upper == coord_lower:
+                    # If upper captures lower
+                    if COUNTERS[upper] == lower:
+                        remove_list_lower.add((lower, coord_lower))
+                    elif COUNTERS[lower] == upper:
+                        remove_list_upper.add((lower, coord_lower))
+
+        # Remove these pieces that are captured
+        for element in remove_list_upper:
+            upper_thrown[element[0]].remove(element[1])
+
+        for element in remove_list_lower:
+            lower_thrown[element[0]].remove[element[1]]
+
+        # Return these updated dictionaries
+        return upper_thrown, lower_thrown
 
     """ Apply a upper and lower move to the board """
     def apply_turn2(self, upper_move, lower_move):
         boardcopy = self.board
 
+        # For upper's move
         # Slide or swing
         if upper_move[0] != "THROW":
             coord_from = upper_move[1]
@@ -125,6 +161,7 @@ class Board:
             update_throw(boardcopy.thrown_uppers, upper_move[1], upper_move[2])
             boardcopy.unthrown_uppers -= 1
 
+        # For lower's move:
         # Slide or swing
         if lower_move[0] != "THROW":
             coord_from = lower_move[1]
@@ -137,7 +174,9 @@ class Board:
 
         return boardcopy
 
-    """ seems wasteful to make a new board? """
+
+
+    """  """
     def apply_turn(self, upper_move, lower_move):
         """
         Given an upper and lower move, create the resultant board from

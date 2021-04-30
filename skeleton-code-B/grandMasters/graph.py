@@ -67,4 +67,3 @@ class Node:
             return Node(self.board.apply_turn(p, o))
         else:
             return Node(self.board.apply_turn(o, p))
->>>>>>> 193a1ec14a044b06ecf9e4d56f2c4b7195a00e75

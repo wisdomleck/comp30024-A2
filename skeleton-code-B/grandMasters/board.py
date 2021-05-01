@@ -137,10 +137,14 @@ class Board:
 
         # Remove these pieces that are captured
         for element in remove_list_upper:
-            upper_thrown[element[0]].remove(element[1])
+            # Case for multiple instances of same piece on same tile
+            while element[1] in upper_thrown[element[0]]:
+                upper_thrown[element[0]].remove(element[1])
 
         for element in remove_list_lower:
-            lower_thrown[element[0]].remove(element[1])
+            # Case for multiple instances of same piece on same tile
+            while element[1] in lower_thrown[element[0]]:
+                lower_thrown[element[0]].remove(element[1])
 
         # Return these updated dictionaries
         return upper_thrown, lower_thrown

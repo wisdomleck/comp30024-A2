@@ -77,7 +77,12 @@ class SillyMoveChooserAI:
         if dist_closing_moves:
             return random.choice(dist_closing_moves)
         # Otherwise just play random
-        return random.choice(board.generate_turns())
+        upper, lower = board.generate_turns()
+
+        if self.us == "UPPER":
+            return random.choice(upper)
+        else:
+            return random.choice(lower)
 
     """ Removes moves which result in us having one less token """
     def remove_suicide_moves(self, moves, board):

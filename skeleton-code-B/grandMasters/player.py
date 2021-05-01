@@ -40,7 +40,9 @@ class Player:
         and player_action is this instance's latest chosen action.
         """
         if self.us == "UPPER":
-            self.own_board = self.own_board.apply_turn(player_action, opponent_action)
+            self.own_board = self.own_board.apply_turn2(player_action, opponent_action)
         else:
-            self.own_board = self.own_board.apply_turn(opponent_action, player_action)
+            self.own_board = self.own_board.apply_turn2(opponent_action, player_action)
+        print("AFTER UPDATE:")
+        print(self.own_board)
         # put your code here

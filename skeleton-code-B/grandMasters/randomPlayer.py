@@ -1,7 +1,7 @@
-from graph import Graph
-from board import Board
+from grandMasters.graph import Graph
+from grandMasters.board import Board
 
-from random_ai import RandomAI
+from grandMasters.random_ai import RandomAI
 
 class Player:
     def __init__(self, player):
@@ -42,7 +42,7 @@ class Player:
         and player_action is this instance's latest chosen action.
         """
         if self.us == "UPPER":
-            self.own_board = self.own_board.apply_turn(player_action, opponent_action)
+            self.own_board = self.own_board.apply_turn2(player_action, opponent_action)
         else:
-            self.own_board = self.own_board.apply_turn(opponent_action, player_action)
+            self.own_board = self.own_board.apply_turn2(opponent_action, player_action)
         # put your code here

@@ -16,32 +16,34 @@ def test_moves(root, depth):
 
 #newgraph = Graph("UPPER")
 #test_moves(newgraph.root, 0)
-# ISWIN ISDRAW TESTING HERE --------------------------------------------------------------------------------
+# ISWIN ISDRAW/generateturns TESTING HERE --------------------------------------------------------------------------------
 """
-uppers = {'s':[(0,1)],'p':[], 'r':[]}
-lowers = {'s':[(0,0)],'p':[], 'r':[]}
+uppers = {'s': [(2, -4)], 'p': [(4, -2)], 'r': [(3, -2), (3, 0)]}
+lowers = {'s': [(-3, 4), (4, -1)], 'p': [(-2, 2)], 'r': [(-1, 4), (-3, -1)]}
 testboard = Board(uppers, lowers, 0, 0, 0, None)
-
-print(testboard.is_win("UPPER"))
-print(testboard.is_draw())
+print(print_board(part2_to_part1(testboard)))
+u, l = testboard.generate_turns()
+print(u)
+#print(testboard.is_win("UPPER"))
+#print(testboard.is_draw())
 """
 # apply_turn2 TESTING HERE ---------------------------------------------------------------------------------
-"""
-uppers = {'s':[],'p':[], 'r':[]}
+
+uppers = {'s':[],'p':[], 'r':[(3,-2)]}
 lowers = {'s':[],'p':[], 'r':[]}
 
-testboard = Board(uppers, lowers, 9, 9, 0, None)
+testboard = Board(uppers, lowers, 4, 4, 0, None)
 
 print(testboard)
 
-testboard = testboard.apply_turn2((("THROW"), "r", (0,0)), ("THROW", "p", (0,1)))
-testboard = testboard.apply_turn2((("THROW"), "s", (-1, 1)), ("SLIDE", (0,1), (-1,1)))
+testboard = testboard.apply_turn2((("THROW"), "r", (3,-2)), ("THROW", "r", (3,-2)))
+testboard = testboard.apply_turn2((("THROW"), "s", (-1, 1)), ("THROW", "p", (3,-2)))
 
 print(testboard)
-"""
+
 # MCTS TESTING HERE ----------------------------------------------------------------------------------------
 
-
+"""
 graph = Graph("UPPERS")
 
 board = graph.root.board
@@ -73,7 +75,7 @@ print(total_value)
 
 #test_moves(graph.root, 0)
 
-"""
+
 graph = Graph("UPPERS")
 print(graph.root.board.generate_throws("UPPER"))
 

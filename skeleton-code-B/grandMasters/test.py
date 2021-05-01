@@ -14,10 +14,34 @@ def test_moves(root, depth):
     #rand_pick = random.randint(0, len(adjacents))
     test_moves(random.choice(adjacents), depth + 1)
 
-newgraph = Graph("UPPER")
-test_moves(newgraph.root, 0)
-
+#newgraph = Graph("UPPER")
+#test_moves(newgraph.root, 0)
+# ISWIN ISDRAW TESTING HERE --------------------------------------------------------------------------------
 """
+uppers = {'s':[(0,1)],'p':[], 'r':[]}
+lowers = {'s':[(0,0)],'p':[], 'r':[]}
+testboard = Board(uppers, lowers, 0, 0, 0, None)
+
+print(testboard.is_win("UPPER"))
+print(testboard.is_draw())
+"""
+# apply_turn2 TESTING HERE ---------------------------------------------------------------------------------
+"""
+uppers = {'s':[],'p':[], 'r':[]}
+lowers = {'s':[],'p':[], 'r':[]}
+
+testboard = Board(uppers, lowers, 9, 9, 0, None)
+
+print(testboard)
+
+testboard = testboard.apply_turn2((("THROW"), "r", (0,0)), ("THROW", "p", (0,1)))
+testboard = testboard.apply_turn2((("THROW"), "s", (-1, 1)), ("SLIDE", (0,1), (-1,1)))
+
+print(testboard)
+"""
+# MCTS TESTING HERE ----------------------------------------------------------------------------------------
+
+
 graph = Graph("UPPERS")
 
 board = graph.root.board
@@ -46,7 +70,7 @@ for i in range(100):
     total_value += result
 print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/100}")
 print(total_value)
-"""
+
 #test_moves(graph.root, 0)
 
 """

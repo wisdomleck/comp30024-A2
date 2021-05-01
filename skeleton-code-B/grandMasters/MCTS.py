@@ -99,7 +99,7 @@ class MCTSNode:
     def rollout(self):
         current_board = self.board
         #print("NEW GAME")
-        while not current_board.is_win("UPPER") or current_board.is_draw() or current_board.is_win("LOWER"):
+        while not (current_board.is_win("UPPER") or current_board.is_draw() or current_board.is_win("LOWER")):
             # Do this in order to randomize between movetype, then randomise between move
             #rand_move_p1 = self.choose_random_move(current_board.generate_seq_turn()[self.player])
             #rand_move_p2 = self.choose_random_move(current_board.generate_seq_turn()[self.switch_player()])
@@ -110,14 +110,14 @@ class MCTSNode:
             rand_move_p2 = random.choice(lower)
 
             if self.player == "UPPER":
-                current_board = current_board.apply_turn(rand_move_p1, rand_move_p2)
+                current_board = current_board.apply_turn2(rand_move_p1, rand_move_p2)
             else:
-                current_board = current_board.apply_turn(rand_move_p2, rand_move_p1)
+                current_board = current_board.apply_turn2(rand_move_p2, rand_move_p1)
             #print(current_board)
             #print_board(part2_to_part1(current_board))
             #print(current_board)
             #print(part1_to_part2(part2_to_part1(current_board)))
-        return current_board.game_result(), current_board.turn
+        return current_board.game_result(self.player), current_board.turn
 
 
     def select(self):

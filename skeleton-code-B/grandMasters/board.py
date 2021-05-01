@@ -36,7 +36,7 @@ class Board:
         self.remaining_tokens(other) == 1
 
     def is_draw(self):
-        return not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER") or\
+        return (not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER")) or\
         self.has_invincible("UPPER") and self.has_invincible("LOWER") or self.turn >= 360
 
     """ Returns the result of the game, from the perspective of the current board.
@@ -45,14 +45,14 @@ class Board:
         0 - tie
         -1 - win for LOWER
     """
-    def game_result(self):
-        other = "LOWER" if self.player == "UPPER" else "UPPER"
-        if is_win(self.player):
+    def game_result(self, player):
+        other = "LOWER" if player == "UPPER" else "UPPER"
+        if self.is_win(player):
             return 1
-        elif is_win(other):
+        elif self.is_win(other):
             return -1
 
-        if is_draw():
+        if self.is_draw():
             return 0
         # Somehow this gets triggered when is_terminal is True
         return 777777
@@ -84,95 +84,99 @@ class Board:
     """ NEED TO HANDLE CAPTURES FOR update FUNCTIONS """
 
     """ Updates the corresponding dictionary with a slide or swing move """
-    def update_slide_swing(self, dict1, from1, to1):
-        for key, value in dict1.items():
-            for tile in value:
-                if tile == from1:
-                    dict[key].remove(from1)
-                    dict[key].append(to1)
-        return
+    def update_slide_swing(self, dict, from_coord, to_coord):
+        for key in dict.keys():
+            for tile in dict[key]:
+                if tile == from_coord:
+                    dict[key].remove(from_coord)
+                    dict[key].append(to_coord)
+                    return key
 
     """ Updates the dictionary with a throw move """
     def update_throw(self, dict, piece, to):
         dict[piece].append(to)
-        return
+        return piece
 
     """ After the simultaneous move, resolve any captures that occurred """
-    def resolve_conflicts(self, upper_thrown, lower_thrown):
-        upper_pieces = upper_thrown.items()
-        lower_pieces = lower_thrown.items()
+    """ pass in moves that were made that turn """
+    def resolve_conflicts(self, upper_thrown, lower_thrown, upper_move, lower_move):
+        # Upper_move, lower_move in form of (piecetype, newcoord)
+        upper_piecetype = upper_move[0]
+        upper_newcoord = upper_move[1]
+        lower_piecetype = lower_move[0]
+        lower_newcoord = lower_move[1]
 
         # Pieces to remove
         remove_list_upper = set()
         remove_list_lower = set()
 
-        # Check suicide moves for upper
-        for i in range(0, len(upper_pieces)):
-            for j in range(i, len(upper_pieces)):
-                # If coords are the same, check if one counters another
-                if upper_pieces[i][1] == upper_pieces[j][1]:
-                    if COUNTERS[upper_pieces[i][0]] == upper_pieces[j][0]:
-                        remove_list_upper.add(upper_pieces[j])
-                    if COUNTERS[upper_pieces[j][0]] == upper_pieces[i][0]:
-                        remove_list_upper.add(upper_pieces[i])
+        # See if upper_move or lower_move is a suicide or not
+        if upper_newcoord in upper_thrown[COUNTERED[upper_piecetype]]:
+            remove_list_upper.add((upper_piecetype, upper_newcoord))
+        if upper_newcoord in lower_thrown[COUNTERED[upper_piecetype]]:
+            remove_list_upper.add((upper_piecetype, upper_newcoord))
 
-        # Check suicide moves for upper
-        for i in range(0, len(lower_pieces)):
-            for j in range(i, len(lower_pieces)):
-                # If coords are the same, check if one counters another
-                if lower_pieces[i][1] == lower_pieces[j][1]:
-                    if COUNTERS[lower_pieces[i][0]] == lower_pieces[j][0]:
-                        remove_list_lower.add(lower_pieces[j])
-                    if COUNTERS[upper_pieces[j][0]] == lower_pieces[i][0]:
-                        remove_list_lower.add(lower_pieces[i])
+        #print("LOWER PIECETYPE", lower_piecetype)
+        #print("LOWER_MOVE: ", lower_move)
+        if lower_newcoord in upper_thrown[COUNTERED[lower_piecetype]]:
+            remove_list_lower.add((lower_piecetype, lower_newcoord))
+        if lower_newcoord in lower_thrown[COUNTERED[lower_piecetype]]:
+            remove_list_lower.add((lower_piecetype, lower_newcoord))
 
-        # Check for captures between upper/lower pieces now
-        for upper, coord_upper in upper_pieces:
-            for lower, coord_lower in lower_pieces:
-                if coord_upper == coord_lower:
-                    # If upper captures lower
-                    if COUNTERS[upper] == lower:
-                        remove_list_lower.add((lower, coord_lower))
-                    elif COUNTERS[lower] == upper:
-                        remove_list_upper.add((lower, coord_lower))
+        # See if upper_move or lower_move captured anything or not
+        if upper_newcoord in upper_thrown[COUNTERS[upper_piecetype]]:
+            remove_list_upper.add((COUNTERS[upper_piecetype], upper_newcoord))
+        if upper_newcoord in lower_thrown[COUNTERS[upper_piecetype]]:
+            remove_list_lower.add((COUNTERS[upper_piecetype], upper_newcoord))
+
+        if lower_newcoord in upper_thrown[COUNTERS[lower_piecetype]]:
+            remove_list_upper.add((COUNTERS[lower_piecetype], lower_newcoord))
+        if lower_newcoord in lower_thrown[COUNTERS[lower_piecetype]]:
+            remove_list_lower.add((COUNTERS[lower_piecetype], lower_newcoord))
+
 
         # Remove these pieces that are captured
         for element in remove_list_upper:
             upper_thrown[element[0]].remove(element[1])
 
         for element in remove_list_lower:
-            lower_thrown[element[0]].remove[element[1]]
+            lower_thrown[element[0]].remove(element[1])
 
         # Return these updated dictionaries
         return upper_thrown, lower_thrown
 
     """ Apply a upper and lower move to the board """
     def apply_turn2(self, upper_move, lower_move):
-        boardcopy = self.board
+        # Create deepcopy of token related variables
+        new_thrown_uppers = deepcopy(self.thrown_uppers)
+        new_thrown_lowers = deepcopy(self.thrown_lowers)
+        unthrown_uppers = self.unthrown_uppers
+        unthrown_lowers = self.unthrown_lowers
 
         # For upper's move
         # Slide or swing
         if upper_move[0] != "THROW":
             coord_from = upper_move[1]
             coord_to = upper_move[2]
-            update_slide_swing(boardcopy.thrown_uppers, coord_from, coord_to)
+            upper_piecetype = self.update_slide_swing(new_thrown_uppers, coord_from, coord_to)
         # Throw
         else:
-            update_throw(boardcopy.thrown_uppers, upper_move[1], upper_move[2])
-            boardcopy.unthrown_uppers -= 1
+            upper_piecetype = self.update_throw(new_thrown_uppers, upper_move[1], upper_move[2])
+            unthrown_uppers -= 1
 
         # For lower's move:
         # Slide or swing
         if lower_move[0] != "THROW":
             coord_from = lower_move[1]
             coord_to = lower_move[2]
-            update_slide_swing(boardcopy.thrown_lowers, coord_from, coord_to)
+            lower_piecetype = self.update_slide_swing(new_thrown_lowers, coord_from, coord_to)
         # Throw
         else:
-            update_throw(boardcopy.thrown_lowers, lower_move[1], lower_move[2])
-            boardcopy.unthrown_lowers -= 1
+            lower_piecetype = self.update_throw(new_thrown_lowers, lower_move[1], lower_move[2])
+            unthrown_lowers -= 1
 
-        return boardcopy
+        new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, upper_move[2]), (lower_piecetype, lower_move[2]))
+        return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
 
 
@@ -207,7 +211,6 @@ class Board:
         # Update deepcopied thrown piece dictionaries and create new board object
         self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
         self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
-
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
     """ Same as apply_turn, but for one player. Used for MCTS """

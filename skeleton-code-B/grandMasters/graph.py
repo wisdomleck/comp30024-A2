@@ -1,5 +1,5 @@
 from board import Board
-from linearprograms import solve_game, get_alpha, get_beta
+from linearprograms import solve_game
 import numpy as np
 from itertools import product
 import random

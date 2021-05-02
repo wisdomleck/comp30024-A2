@@ -28,7 +28,7 @@ print(u)
 #print(testboard.is_draw())
 """
 # apply_turn2 TESTING HERE ---------------------------------------------------------------------------------
-
+"""
 uppers = {'s':[],'p':[], 'r':[(3,-2)]}
 lowers = {'s':[],'p':[], 'r':[]}
 
@@ -40,10 +40,10 @@ testboard = testboard.apply_turn2((("THROW"), "r", (3,-2)), ("THROW", "r", (3,-2
 testboard = testboard.apply_turn2((("THROW"), "s", (-1, 1)), ("THROW", "p", (3,-2)))
 
 print(testboard)
-
+"""
 # MCTS TESTING HERE ----------------------------------------------------------------------------------------
 
-"""
+
 graph = Graph("UPPERS")
 
 board = graph.root.board
@@ -53,14 +53,14 @@ print_board(part2_to_part1(board))
 print(part1_to_part2(part2_to_part1(board)))
 
 mctsnode = MCTSNode(board, "UPPER")
-
+print(len(mctsnode.get_possible_moves()))
 upper_wins = 0
 lower_wins = 0
 ties = 0
 total_turns = 0
 
 total_value = 0
-for i in range(100):
+for i in range(0):
     result, turns = mctsnode.rollout()
     if result == 1:
         upper_wins += 1
@@ -70,12 +70,27 @@ for i in range(100):
         ties += 1
     total_turns += turns
     total_value += result
-print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/100}")
+print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/10}")
 print(total_value)
+
+
+thrown_uppers = {'s': [(0,0)], 'p': [], 'r': [(3,-3)]}
+thrown_lowers = {'s': [(3,-2)], 'p': [(3,-4)], 'r': [(0,1)]}
+
+testboard = Board(thrown_uppers, thrown_lowers, 0, 0, 20, None)
+print_board(part2_to_part1(testboard))
+mctsnode = MCTSNode(testboard, "UPPER")
+print(len(mctsnode.simultaneous_moves))
+selectednode = mctsnode.best_action()
+print(selectednode.last_action)
+
+for child in mctsnode.children:
+    print(child.resultsUpper)
+    print(child.resultsLower)
 
 #test_moves(graph.root, 0)
 
-
+"""
 graph = Graph("UPPERS")
 print(graph.root.board.generate_throws("UPPER"))
 

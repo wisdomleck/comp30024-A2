@@ -3,6 +3,7 @@ from board import Board
 import random
 from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
 from collections import defaultdict
+import numpy as np
 
 MOVETYPES = ["THROWS", "SLIDES", "SWINGS"]
 
@@ -29,7 +30,6 @@ class MCTSNode:
         self.resultsLower = defaultdict(lambda: 0)
 
         self.num_visits = 0
-
         # In the current board, who's move is it?
         self.player = player
 
@@ -50,9 +50,9 @@ class MCTSNode:
     def expand(self):
         move = self.simultaneous_moves.pop()
 
-        nextboard = self.board.apply_turn2(move)
+        nextboard = self.board.apply_turn2(move[0], move[1])
 
-        child = MCTSNode(nextboard, self.switch_player(), parent=self, last_action = move)
+        child = MCTSNode(nextboard, self.switch_player(), parent=self, last_action=move)
 
         self.children.append(child)
 
@@ -98,14 +98,6 @@ class MCTSNode:
         else:
             return "UPPER"
 
-    def q(self):
-        wins = self.results[1]
-        loses = self.results[-1]
-        return wins - loses
-
-    def n(self):
-        return self.number_of_visits
-
     """ Simulates a random game from given board
         For each iteration, move both player's pieces simultaneously
     """
@@ -123,39 +115,50 @@ class MCTSNode:
             rand_move_p1 = random.choice(upper)
             rand_move_p2 = random.choice(lower)
 
-            if self.player == "UPPER":
-                current_board = current_board.apply_turn2(rand_move_p1, rand_move_p2)
-            else:
-                current_board = current_board.apply_turn2(rand_move_p2, rand_move_p1)
+            #print(rand_move_p1, rand_move_p2)
+            #print(current_board.thrown_uppers)
+            #print(current_board.thrown_lowers)
+
+            current_board = current_board.apply_turn2(rand_move_p1, rand_move_p2)
+
             #print(current_board)
             #print_board(part2_to_part1(current_board))
             #print(current_board)
             #print(part1_to_part2(part2_to_part1(current_board)))
-        return current_board.game_result(self.player), current_board.turn
+        return current_board.game_result(), current_board.turn
 
     # Back propagates the result using DUCT. Update results in decoupled way
     # and add results for the move
+    # Last action for root node is none
     def backpropagate(self, result):
         self.num_visits += 1
-        self.resultsUpper[self.last_action[0]] += result
-        self.resultsLower[self.last_action[1]] += result
-        if self.parent:
+        #print(self.last_action)
+        #print(self.board.thrown_uppers)
+        #print(self.board.thrown_lowers)
+        if self.parent is not None:
+            # DOBULE CHECK THIS PARENT PROPAGATE CALL
+            self.parent.resultsUpper[self.last_action[0]] += result
+            self.parent.resultsLower[self.last_action[1]] += -result
+        if self.parent is not None:
             self.parent.backpropagate(result)
 
     # Stop expanding if no more upper moves or no more lower moves
     def is_fully_expanded(self):
-        return len(self.simultaneous_moves)
+        return len(self.simultaneous_moves) == 0
 
     def best_child(self, c_param = 0.1):
         choices_weights_upper = [(c.q_upper() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
         choices_weights_lower = [(c.q_lower() / c.n()) + c_param * np.sqrt((2 * np.log(self.n()) / c.n())) for c in self.children]
-        upper_move = self.children[np.argmax(choices_weights_upper)].last_move[0]
-        lower_move = self.children[np.argmax(choices_weights_upper)].last_move[1]
+        #print(choices_weights_upper)
+        #print(self.children)
+        upper_move = self.children[np.argmax(choices_weights_upper)].last_action[0]
+        lower_move = self.children[np.argmax(choices_weights_upper)].last_action[1]
 
         # Assume that a node made from upper_move, lower_move exists?
         for child in self.children:
-            if (upper_move, lower_move) == child.last_move:
+            if (upper_move, lower_move) == child.last_action:
                 return child
+
         return None
 
     # Function that selects a node to rollout.
@@ -180,12 +183,13 @@ class MCTSNode:
         return self.num_visits
 
     def best_action(self):
-        simulation_no = 1000
+        simulation_no = 5000
 
         for i in range(simulation_no):
 
             v = self.tree_policy()
-            reward = v.rollout()
+            # Because rollout is giving out a tuple rn
+            reward = v.rollout()[0]
             v.backpropagate(reward)
 
-        return self.best_child(cparam=0.1)
+        return self.best_child(c_param=0.05)

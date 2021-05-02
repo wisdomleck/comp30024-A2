@@ -45,7 +45,7 @@ class Board:
         0 - tie
         -1 - win for LOWER
     """
-    def game_result(self, player):
+    def game_result(self):
         if self.is_win("UPPER"):
             return 1
         elif self.is_win("LOWER"):
@@ -180,6 +180,56 @@ class Board:
 
         new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, upper_move[2]), (lower_piecetype, lower_move[2]))
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
+
+
+
+
+
+
+    """ GENERATE GREEDY MOVESETS FOR MCTS """
+    """ make a function that returns a list of moves by priority? then take first x?"""
+
+    def determine_capture_moves(self, board):
+        upper_moves, lower_moves = board.generate_turns()
+
+        if self.us == "UPPER":
+            own_moves = upper_moves
+        else:
+            own_moves = lower_moves
+
+        #print(own_moves)
+        slide_capture_moves = []
+        throw_capture_moves = []
+        for move in own_moves:
+            next_board = board.apply_turn_seq(move, self.us)
+            if next_board.remaining_tokens(self.opponent) < board.remaining_tokens(self.opponent):
+                if move[0] == "THROW":
+                    throw_capture_moves.append(move)
+                else:
+                    slide_capture_moves.append(move)
+
+        return slide_capture_moves, throw_capture_moves
+
+    def determine_dist_moves(self, board):
+        upper_moves, lower_moves = board.generate_turns()
+
+        if self.us == "UPPER":
+            own_moves = upper_moves
+        else:
+            own_moves = lower_moves
+
+        dist_moves = []
+        for move in own_moves:
+            next_board = board.apply_turn_seq(move, self.us)
+            if self.get_min_distance_total(next_board) < self.get_min_distance_total(board):
+                # Only use slide moves to close dist, don't throw
+                if move[0] == "SLIDE":
+                    dist_moves.append(move)
+
+        return dist_moves
+
+
+
 
     def generate_turns(self):
         """

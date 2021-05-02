@@ -2,6 +2,7 @@
 from board import Board
 import random
 from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
+from collections import defaultdict
 
 MOVETYPES = ["THROWS", "SLIDES", "SWINGS"]
 
@@ -22,11 +23,16 @@ class MCTSNode:
 
         # Dictionary to keep track of wins (1), losses (-1), draws (0)
         self.results = {}
+
         self.results[1] = 0
         self.results[0] = 0
         self.results[-1] = 0
 
-        self.num_simulations = 0
+        # Need to store the results for each move in a node
+
+
+
+        self.number_of_visits = 0
 
 
         # In the current board, who's move is it?
@@ -93,6 +99,18 @@ class MCTSNode:
         else:
             return "UPPER"
 
+    def q(self):
+        wins = self.results[1]
+        loses = self.results[-1]
+        return wins - loses
+
+    def n(self):
+        return self.number_of_visits
+
+
+
+    def is_terminal_node(self):
+        return self.board.is_win("UPPER") or self.board.is_win("LOWER") or self.board.is_draw()
     """ Simulates a random game from given board
         For each iteration, move both player's pieces simultaneously
     """

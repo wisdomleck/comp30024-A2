@@ -46,16 +46,15 @@ class Board:
         -1 - win for LOWER
     """
     def game_result(self, player):
-        other = "LOWER" if player == "UPPER" else "UPPER"
-        if self.is_win(player):
+        if self.is_win("UPPER"):
             return 1
-        elif self.is_win(other):
+        elif self.is_win("LOWER"):
             return -1
 
         if self.is_draw():
             return 0
-        # Somehow this gets triggered when is_terminal is True
-        return 777777
+        # If somehow this gets triggered
+        return 7777
 
 
     def remaining_tokens(self, player):
@@ -181,130 +180,6 @@ class Board:
 
         new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, upper_move[2]), (lower_piecetype, lower_move[2]))
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
-
-
-
-    """  """
-    def apply_turn(self, upper_move, lower_move):
-        """
-        Given an upper and lower move, create the resultant board from
-        apply these moves to the current board.
-        """
-        # Create deepcopy of token related variables
-        new_thrown_uppers = deepcopy(self.thrown_uppers)
-        new_thrown_lowers = deepcopy(self.thrown_lowers)
-        unthrown_uppers = self.unthrown_uppers
-        unthrown_lowers = self.unthrown_lowers
-
-        # In a slide or swing move, first remove piece from board before
-        # re-adding it to its correct location
-        if upper_move[0] != "THROW":
-            t = self.remove_piece(upper_move[1], new_thrown_uppers)
-            u_move = (t, upper_move[2])
-        else:
-            u_move = (upper_move[1], upper_move[2])
-            unthrown_uppers -= 1
-
-        if lower_move[0] != "THROW":
-            t = self.remove_piece(lower_move[1], new_thrown_lowers)
-            l_move = (t, lower_move[2])
-        else:
-            l_move = (lower_move[1], lower_move[2])
-            unthrown_lowers -= 1
-
-        # Update deepcopied thrown piece dictionaries and create new board object
-        self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
-        self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
-        return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
-
-    """ Same as apply_turn, but for one player. Used for MCTS """
-    def apply_turn_seq(self, move, player):
-
-        # Create deepcopy of token related variables
-        new_thrown_uppers = deepcopy(self.thrown_uppers)
-        new_thrown_lowers = deepcopy(self.thrown_lowers)
-        unthrown_uppers = self.unthrown_uppers
-        unthrown_lowers = self.unthrown_lowers
-
-        """
-        Given a move and a player, execute that move for that player
-        """
-        if player == "UPPER":
-            if move[0] != "THROW":
-                t = self.remove_piece(move[1], new_thrown_uppers)
-                u_move = (t, move[2])
-            else:
-                u_move = (move[1], move[2])
-                unthrown_uppers -= 1
-
-            self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
-
-        elif player == "LOWER":
-
-            if move[0] != "THROW":
-                t = self.remove_piece(move[1], new_thrown_lowers)
-                l_move = (t, move[2])
-            else:
-                l_move = (move[1], move[2])
-                unthrown_lowers -= 1
-
-            self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
-
-        return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, None)
-
-
-    def add_piece(self, piece, mover_dict, other_dict):
-        """
-        Piece is a tuple with containing the piece's token type and position.
-        This function adds such a token to the required position, removing any
-        token that is destroyed as a result.
-        """
-
-        # Get type of token which counters and is countered by added token.
-        token, pos = piece
-        token_g = COUNTERS[token]
-        token_b = COUNTERED[token]
-
-        # If counter token at the position, do nothing.
-        if pos in mover_dict[token_b] or pos in other_dict[token_b]:
-             return
-
-        # Remove any instance of countered tokens from the position and add
-        # new token to position.
-        mover_dict[token_g] = [p for p in mover_dict[token_g] if p != pos]
-        other_dict[token_g] = [p for p in other_dict[token_g] if p != pos]
-        mover_dict[token].append(pos)
-
-    def remove_piece(self, pos, mover_dict):
-        """
-        Remove token exisiting on input position from the movers thrown dictionary.
-        Return the token type.
-        """
-        for key, value in mover_dict.items():
-            if pos in value:
-                value.remove(pos)
-                return key
-
-
-    # Assumes the turn is valid but checks
-    def check_turn(self, upper_move, lower_move):
-        return
-
-    """ The moves passed into the sequential version of MCTS """
-    def generate_seq_turn(self):
-        lower_moves = {"THROWS": [], "SLIDES": [], "SWINGS": []}
-        upper_moves = {"THROWS": [], "SLIDES": [], "SWINGS": []}
-
-        lower_moves["THROWS"] = self.generate_throws("LOWER")
-        lower_moves["SLIDES"] = self.generate_slides(self.thrown_lowers)
-        lower_moves["SWINGS"] = self.generate_swings(self.thrown_lowers)
-
-        upper_moves["THROWS"] = self.generate_throws("UPPER")
-        upper_moves["SLIDES"] = self.generate_slides(self.thrown_uppers)
-        upper_moves["SWINGS"] = self.generate_swings(self.thrown_uppers)
-
-        return {"UPPER": upper_moves, "LOWER": lower_moves}
-
 
     def generate_turns(self):
         """

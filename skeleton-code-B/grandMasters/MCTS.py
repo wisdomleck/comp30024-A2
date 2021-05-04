@@ -101,7 +101,7 @@ class MCTSNode:
     """ Simulates a random game from given board
         For each iteration, move both player's pieces simultaneously
     """
-    def rollout(self):
+    def rollout_random(self):
         current_board = self.board
         #print("NEW GAME")
         while not (current_board.is_win("UPPER") or current_board.is_draw() or current_board.is_win("LOWER")):
@@ -115,16 +115,36 @@ class MCTSNode:
             rand_move_p1 = random.choice(upper)
             rand_move_p2 = random.choice(lower)
 
-            #print(rand_move_p1, rand_move_p2)
-            #print(current_board.thrown_uppers)
-            #print(current_board.thrown_lowers)
-
             current_board = current_board.apply_turn2(rand_move_p1, rand_move_p2)
 
             #print(current_board)
             #print_board(part2_to_part1(current_board))
             #print(current_board)
             #print(part1_to_part2(part2_to_part1(current_board)))
+        return current_board.game_result(), current_board.turn
+
+    """ Randomly chooses a greedy move """
+    def rollout_greedy(self):
+        current_board = self.board
+        #print("NEW GAME")
+        while not (current_board.is_win("UPPER") or current_board.is_draw() or current_board.is_win("LOWER")):
+
+            # Determine greedy moves then choose random move
+            upper = current_board.determine_greedy_moves("UPPER")
+            lower = current_board.determine_greedy_moves("LOWER")
+
+            """
+            print("TURN:", current_board.turn)
+            print("UPPER:", upper)
+            print("LOWER:", lower)
+            print("upper_thrown:", current_board.thrown_uppers)
+            print("lower_thrown:", current_board.thrown_lowers)"""
+            rand_move_p1 = random.choice(upper)
+            rand_move_p2 = random.choice(lower)
+
+            current_board = current_board.apply_turn2(rand_move_p1, rand_move_p2)
+
+
         return current_board.game_result(), current_board.turn
 
     # Back propagates the result using DUCT. Update results in decoupled way
@@ -135,6 +155,7 @@ class MCTSNode:
         #print(self.last_action)
         #print(self.board.thrown_uppers)
         #print(self.board.thrown_lowers)
+
         if self.parent is not None:
             # DOBULE CHECK THIS PARENT PROPAGATE CALL
             self.parent.resultsUpper[self.last_action[0]] += result
@@ -183,13 +204,18 @@ class MCTSNode:
         return self.num_visits
 
     def best_action(self):
-        simulation_no = 5000
+        simulation_no = 1000
 
         for i in range(simulation_no):
 
             v = self.tree_policy()
             # Because rollout is giving out a tuple rn
-            reward = v.rollout()[0]
+            reward = v.rollout_random()[0]
+
+            # Need to do: update current node -> backpropagate starting from parent since we're using last_action and root has no last_action
+            if self.last_action:
+                v.resultsUpper[self.last_action[0]] += result
+                v.resultsLower[self.last_action[1]] += -result
             v.backpropagate(reward)
 
         return self.best_child(c_param=0.05)

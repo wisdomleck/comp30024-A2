@@ -4,6 +4,10 @@ from MCTS import MCTSNode
 from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
 import random
 from greedy_one_move_solver import SillyMoveChooserAI
+import time
+
+# to record program runtime
+start = time.process_time()
 
 random.seed()
 def test_moves(root, depth):
@@ -60,8 +64,8 @@ ties = 0
 total_turns = 0
 
 total_value = 0
-for i in range(0):
-    result, turns = mctsnode.rollout()
+for i in range(10):
+    result, turns = mctsnode.rollout_greedy()
     if result == 1:
         upper_wins += 1
     elif result == -1:
@@ -73,23 +77,38 @@ for i in range(0):
 print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/10}")
 print(total_value)
 
-
-thrown_uppers = {'s': [(0,0)], 'p': [], 'r': [(3,-3)]}
-thrown_lowers = {'s': [(3,-2)], 'p': [(3,-4)], 'r': [(0,1)]}
+"""
+u = {'s': [(-4, -2), (2, 4)], 'p': [], 'r': []}
+l = {'s': [], 'p': [], 'r': [(0, 3)]}
+testboard = Board(u, l, 0, 0, 37, None)
+print_board(part2_to_part1(testboard))
+print(testboard.generate_turns()[0])
+"""
+"""
+thrown_uppers = {'s': [], 'p': [(0,0), (-4,2)], 'r': [(3,-3)]}
+thrown_lowers = {'s': [(3,-2),(0,1)], 'p': [], 'r': [(0,2)]}
 
 testboard = Board(thrown_uppers, thrown_lowers, 0, 0, 20, None)
 print_board(part2_to_part1(testboard))
+
 mctsnode = MCTSNode(testboard, "UPPER")
 print(len(mctsnode.simultaneous_moves))
 selectednode = mctsnode.best_action()
 print(selectednode.last_action)
 
-for child in mctsnode.children:
-    print(child.resultsUpper)
-    print(child.resultsLower)
+print("UPPER MOVES")
+print(testboard.determine_capture_moves("UPPER"))
+print(testboard.determine_dist_moves("UPPER"))
+print(testboard.determine_slide_escape_moves("UPPER"))
+
+print("GREEDY MOVES UPPER:", testboard.determine_greedy_moves("UPPER"))
+print("GREEDY MOVES LOWER:", testboard.determine_greedy_moves("LOWER"))
+#for child in mctsnode.children:
+    #print(child.resultsUpper)
+    #print(child.resultsLower)
 
 #test_moves(graph.root, 0)
-
+"""
 """
 graph = Graph("UPPERS")
 print(graph.root.board.generate_throws("UPPER"))
@@ -125,3 +144,5 @@ thrown_uppers = {'s':[],'p':[], 'r':[]}
 thrown_lowers = {'s':[],'p':[], 'r':[]}
 testboard = Board(thrown_uppers, thrown_lowers, 1, 1, 50, None)
 print(testboard.generate_turns()) """
+
+print("TIME TAKEN:", time.process_time() - start)

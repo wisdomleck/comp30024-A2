@@ -3,6 +3,8 @@ from copy import deepcopy
 
 COUNTERS = {'s':'p', 'p':'r', 'r':'s'}
 COUNTERED = {'p':'s', 'r':'p', 's':'r'}
+
+SLIDE_DIRECTIONS = [(0,1), (-1,1), (-1,0), (0,-1), (1,-1), (1,0)]
 class Board:
     def __init__(self, thrown_uppers, thrown_lowers, unthrown_uppers, unthrown_lowers, turn, move):
         # Dictionaries to hold upper and lower pieces. Key: piece types, value: positions
@@ -181,6 +183,43 @@ class Board:
         new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, upper_move[2]), (lower_piecetype, lower_move[2]))
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
+    """ Single move at a time """
+    def apply_turn_seq(self, move, player):
+        # Create deepcopy of token related variables
+        new_thrown_uppers = deepcopy(self.thrown_uppers)
+        new_thrown_lowers = deepcopy(self.thrown_lowers)
+        unthrown_uppers = self.unthrown_uppers
+        unthrown_lowers = self.unthrown_lowers
+
+        """
+        Given a move and a player, execute that move for that player
+        """
+        if player == "UPPER":
+            if move[0] != "THROW":
+                coord_from = move[1]
+                coord_to = move[2]
+                upper_piecetype = self.update_slide_swing(new_thrown_uppers, coord_from, coord_to)
+            # Throw
+            else:
+                upper_piecetype = self.update_throw(new_thrown_uppers, move[1], move[2])
+                unthrown_uppers -= 1
+
+        elif player == "LOWER":
+            if move[0] != "THROW":
+                coord_from = move[1]
+                coord_to = move[2]
+                lower_piecetype = self.update_slide_swing(new_thrown_lowers, coord_from, coord_to)
+            # Throw
+            else:
+                lower_piecetype = self.update_throw(new_thrown_lowers, move[1], move[2])
+                unthrown_lowers -= 1
+
+        # Hacky method to update move for only one player
+        if player == "UPPER":
+            new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, move[2]), ("r", (5,5))) # impossible lower move
+        elif player == "LOWER":
+            new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, ("r", (5,5)), (lower_piecetype, move[2])) # impossible upper move
+        return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, None)
 
 
 
@@ -188,21 +227,52 @@ class Board:
 
     """ GENERATE GREEDY MOVESETS FOR MCTS """
     """ make a function that returns a list of moves by priority? then take first x?"""
+    """ Determines capture moves for a player """
+    """ Problems list:
+        - can jitter due to escaping slide then closing distance
+        - doesn't prioritise any moves over the other (just need random for mcts)
+    """
 
-    def determine_capture_moves(self, board):
-        upper_moves, lower_moves = board.generate_turns()
+    """ determines greedy moves for both """
+    def determine_greedy_moves(self):
+        moves = []
 
-        if self.us == "UPPER":
+        all_moves = self.generate_turns()
+
+        #throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
+        #moves += throw_captures + slide_captures
+        #moves += self.determine_dist_moves(player, all_moves)
+        #moves += self.determine_slide_escape_moves(player)
+        #moves = self.remove_suicide_moves(moves, player)
+
+        if not moves:
+            if player == "UPPER":
+                return all_moves[0]
+            else:
+                return all_moves[1]
+        return moves
+
+    def determine_capture_moves(self, player, all_moves):
+
+        upper_moves, lower_moves = all_moves
+
+        if player == "UPPER":
+            opponent = "LOWER"
             own_moves = upper_moves
         else:
+            opponent = "UPPER"
             own_moves = lower_moves
 
         #print(own_moves)
         slide_capture_moves = []
         throw_capture_moves = []
+
+        #print("UPPER:", self.thrown_uppers)
+        #print("LOWER:", self.thrown_lowers)
+        #print(own_moves)
         for move in own_moves:
-            next_board = board.apply_turn_seq(move, self.us)
-            if next_board.remaining_tokens(self.opponent) < board.remaining_tokens(self.opponent):
+            next_board = self.apply_turn_seq(move, player)
+            if next_board.remaining_tokens(opponent) < self.remaining_tokens(opponent):
                 if move[0] == "THROW":
                     throw_capture_moves.append(move)
                 else:
@@ -210,24 +280,104 @@ class Board:
 
         return slide_capture_moves, throw_capture_moves
 
-    def determine_dist_moves(self, board):
-        upper_moves, lower_moves = board.generate_turns()
+    def determine_dist_moves(self, player, all_moves):
+        upper_moves, lower_moves = all_moves
 
-        if self.us == "UPPER":
+        if player == "UPPER":
             own_moves = upper_moves
         else:
             own_moves = lower_moves
 
         dist_moves = []
         for move in own_moves:
-            next_board = board.apply_turn_seq(move, self.us)
-            if self.get_min_distance_total(next_board) < self.get_min_distance_total(board):
+            next_board = self.apply_turn_seq(move, player)
+            if next_board.get_min_distance_total(player) < self.get_min_distance_total(player):
                 # Only use slide moves to close dist, don't throw
                 if move[0] == "SLIDE":
                     dist_moves.append(move)
 
         return dist_moves
 
+
+    # Functions from assignment 1
+    def distance(self, coord1, coord2):
+        (r1, c1) = coord1
+        (r2, c2) = coord2
+
+        dr = r1 - r2
+        dc = c1 - c2
+        if (dr < 0 and dc < 0) or (dr > 0 and dc > 0):
+            return abs(dr + dc)
+        else:
+            return max(abs(dr), abs(dc))
+
+    # Returns total of min distance of every piece to its counter
+    # This min distance effectively just focusses on the min distnace pairing
+    def get_min_distance_total(self, player):
+        # determine which pieces we got
+        if player == "UPPER":
+            our_pieces = self.thrown_uppers
+            enemy_pieces = self.thrown_lowers
+        else:
+            our_pieces = self.thrown_lowers
+            enemy_pieces = self.thrown_uppers
+
+        total = 0
+
+        # For each piecetype in our_pieces find its min distance to an enemy
+        for key in our_pieces.keys():
+            if enemy_pieces[COUNTERS[key]]:
+                # If enemy piece exists for our piece, go through all pairings of tiles and find the min dist
+                mindist = 100000
+                for tile in our_pieces[key]:
+                    for tile2 in enemy_pieces[COUNTERS[key]]:
+                        dist = self.distance(tile, tile2)
+                        if dist < mindist:
+                            mindist = dist
+            # If no enemies found, add 0
+            else:
+                mindist = 0
+
+            total += mindist
+        return total
+
+    """ Removes suicide moves from our moveset """
+    def remove_suicide_moves(self, moves, player):
+        for move in moves:
+            newboard = self.apply_turn_seq(move, player)
+            if newboard.remaining_tokens(player) < self.remaining_tokens(player):
+                moves.remove(move)
+
+        return moves
+
+    """ Determine current pieces that are in danger, return these tiles """
+    def determine_slide_escape_moves(self, player):
+        # determine which pieces we got
+        if player == "UPPER":
+            our_pieces = self.thrown_uppers
+            enemy_pieces = self.thrown_lowers
+        else:
+            our_pieces = self.thrown_lowers
+            enemy_pieces = self.thrown_uppers
+
+        escape_moves = []
+        available_tiles = [(r,q) for r in range(-4,5) for q in range(-4,5) if -r-q in range(-4,5)]
+        # Determine in danger by enemy slides, ie find pieces with their counter distance 1
+        for key in our_pieces.keys():
+            if enemy_pieces[COUNTERED[key]]:
+                for tile in our_pieces[key]:
+                    # Determine if theres an adjacent enemy counter piece
+                    for tile2 in enemy_pieces[COUNTERED[key]]:
+                        if self.distance(tile, tile2) == 1:
+                            # Find a move that increases distance to 2
+                            for direction in SLIDE_DIRECTIONS:
+                                newtile = (tile[0] + direction[0], tile[1] + direction[1])
+                                if newtile not in available_tiles:
+                                    continue
+                                elif self.distance(newtile, tile2) == 2:
+                                    escape_moves.append(("SLIDE", tile, newtile))
+
+        return escape_moves
 
 
 

@@ -234,22 +234,39 @@ class Board:
     """
 
     """ determines greedy moves for both """
-    def determine_greedy_moves(self):
+    def determine_greedy_moves_both(self):
+        all_moves = self.generate_turns()
+        uppermoves = self.determine_greedy_moves("UPPER", all_moves)
+        lowermoves = self.determine_greedy_moves("LOWER", all_moves)
+        return uppermoves, lowermoves
+
+    """ determines greedy moves for a single player"""
+    def determine_greedy_moves(self, player, all_moves):
         moves = []
 
-        all_moves = self.generate_turns()
+        # Adds 2 sec
+        throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
+        moves += throw_captures + slide_captures
 
-        #throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
-        #moves += throw_captures + slide_captures
-        #moves += self.determine_dist_moves(player, all_moves)
-        #moves += self.determine_slide_escape_moves(player)
-        #moves = self.remove_suicide_moves(moves, player)
+        # If no captures, look for dist moves
+        if not moves:
+            moves += self.determine_dist_moves(player, all_moves)
 
+        # If no captures and dist moves, then find slide escapes
+        if not moves:
+            #adds 1 sec
+            moves += self.determine_slide_escape_moves(player)
+
+        # Remove stupid greedy moves
+        moves = self.remove_suicide_moves(moves, player)
+
+        # if nothing, just return all other possible moves
         if not moves:
             if player == "UPPER":
                 return all_moves[0]
             else:
                 return all_moves[1]
+        # adds 0.1 sec?
         return moves
 
     def determine_capture_moves(self, player, all_moves):

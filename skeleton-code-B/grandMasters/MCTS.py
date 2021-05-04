@@ -34,11 +34,20 @@ class MCTSNode:
         self.player = player
 
         # Possible moves for upper and lower
-        self.simultaneous_moves = self.get_possible_moves()
+        self.simultaneous_moves = self.get_possible_moves_greedy()
 
     """ Get possible moves from current state """
     def get_possible_moves(self):
         upper, lower = self.board.generate_turns()
+        moveslist = []
+        for uppermove in upper:
+            for lowermove in lower:
+                moveslist.append((uppermove, lowermove))
+        # Moves is a list with all possible moves
+        return moveslist
+
+    def get_possible_moves_greedy(self):
+        upper, lower = self.board.determine_greedy_moves_both()
         moveslist = []
         for uppermove in upper:
             for lowermove in lower:
@@ -130,8 +139,7 @@ class MCTSNode:
         while not (current_board.is_win("UPPER") or current_board.is_draw() or current_board.is_win("LOWER")):
 
             # Determine greedy moves then choose random move
-            upper = current_board.determine_greedy_moves("UPPER")
-            lower = current_board.determine_greedy_moves("LOWER")
+            upper, lower = current_board.determine_greedy_moves_both()
 
             """
             print("TURN:", current_board.turn)
@@ -204,13 +212,13 @@ class MCTSNode:
         return self.num_visits
 
     def best_action(self):
-        simulation_no = 1000
+        simulation_no = 2000
 
         for i in range(simulation_no):
 
             v = self.tree_policy()
             # Because rollout is giving out a tuple rn
-            reward = v.rollout_random()[0]
+            reward = v.rollout_greedy()[0]
 
             # Need to do: update current node -> backpropagate starting from parent since we're using last_action and root has no last_action
             if self.last_action:

@@ -1,7 +1,7 @@
 
-from board import Board
+from grandMasters.board import Board
 import random
-from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
+from grandMasters.util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
 from collections import defaultdict
 import numpy as np
 
@@ -110,6 +110,18 @@ class MCTSNode:
     """ Simulates a random game from given board
         For each iteration, move both player's pieces simultaneously
     """
+
+    def generate_random_board(self, turns):
+        current_board = self.board
+        while current_board.turn <= turns:
+            upper, lower = current_board.generate_turns()
+            rand1 = random.choice(upper)
+            rand2 = random.choice(lower)
+
+            current_board = current_board.apply_turn2(rand1, rand2)
+
+        return current_board
+
     def rollout_random(self):
         current_board = self.board
         #print("NEW GAME")
@@ -140,7 +152,6 @@ class MCTSNode:
 
             # Determine greedy moves then choose random move
             upper, lower = current_board.determine_greedy_moves_both()
-
             """
             print("TURN:", current_board.turn)
             print("UPPER:", upper)
@@ -211,8 +222,8 @@ class MCTSNode:
     def n(self):
         return self.num_visits
 
-    def best_action(self):
-        simulation_no = 2000
+    def best_action(self, turns):
+        simulation_no = turns
 
         for i in range(simulation_no):
 

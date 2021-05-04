@@ -65,8 +65,9 @@ total_turns = 0
 
 total_value = 0
 
-for i in range(0):
-    result, turns = mctsnode.rollout_greedy()
+"""
+for i in range(10):
+    result, turns = mctsnode.rollout_random()
     if result == 1:
         upper_wins += 1
     elif result == -1:
@@ -75,9 +76,22 @@ for i in range(0):
         ties += 1
     total_turns += turns
     total_value += result
-print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/10}")
+print(f"UpperWins: {upper_wins}\nLowerWins: {lower_wins}\nTies: {ties}\nAvgTurnsNeeded: {total_turns/1000}")
 print(total_value)
+"""
+"""
+randomboard = mctsnode.generate_random_board(30)
 
+print("RANDOM BOARD")
+print_board(part2_to_part1(randomboard))
+
+randomuppers = randomboard.thrown_uppers
+randomlowers = randomboard.thrown_lowers
+randomturn = randomboard.turn
+
+print(randomuppers)
+print(randomlowers)
+"""
 """
 u = {'s': [(-4, -2), (2, 4)], 'p': [], 'r': []}
 l = {'s': [], 'p': [], 'r': [(0, 3)]}
@@ -86,15 +100,15 @@ print_board(part2_to_part1(testboard))
 print(testboard.generate_turns()[0])
 """
 
-thrown_uppers = {'s': [], 'p': [(0,0), (-4,2)], 'r': [(3,-3)]}
-thrown_lowers = {'s': [(3,-2),(0,1)], 'p': [], 'r': [(0,2)]}
+thrown_uppers = {'s': [], 'p': [(4,-1), (3,-3), (0,-3)], 'r': [(4,-3)]}
+thrown_lowers = {'s': [(0,-1), (-3,4), (-4,3)], 'p': [(-2,2)], 'r': [(-4,0), (-1,4)]}
 
-testboard = Board(thrown_uppers, thrown_lowers, 0, 0, 20, None)
+testboard = Board(thrown_uppers, thrown_lowers, 5, 3, 0, None)
 print_board(part2_to_part1(testboard))
 
 mctsnode = MCTSNode(testboard, "UPPER")
 print(len(mctsnode.simultaneous_moves))
-selectednode = mctsnode.best_action()
+selectednode = mctsnode.best_action(len(mctsnode.simultaneous_moves) * 5)
 print(selectednode.last_action)
 
 """

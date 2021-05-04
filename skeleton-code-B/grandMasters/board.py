@@ -222,9 +222,6 @@ class Board:
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, None)
 
 
-
-
-
     """ GENERATE GREEDY MOVESETS FOR MCTS """
     """ make a function that returns a list of moves by priority? then take first x?"""
     """ Determines capture moves for a player """
@@ -248,13 +245,9 @@ class Board:
         throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
         moves += throw_captures + slide_captures
 
-        # If no captures, look for dist moves
+        # If no captures, look for dist moves and escaping moves
         if not moves:
             moves += self.determine_dist_moves(player, all_moves)
-
-        # If no captures and dist moves, then find slide escapes
-        if not moves:
-            #adds 1 sec
             moves += self.determine_slide_escape_moves(player)
 
         # Remove stupid greedy moves
@@ -263,10 +256,14 @@ class Board:
         # if nothing, just return all other possible moves
         if not moves:
             if player == "UPPER":
-                return all_moves[0]
+                moves = all_moves[0]
             else:
-                return all_moves[1]
-        # adds 0.1 sec?
+                moves = all_moves[1]
+
+        # Restrict to n moves?
+        num_moves = 7
+        if len(moves) > num_moves:
+            moves = moves[:num_moves]
         return moves
 
     def determine_capture_moves(self, player, all_moves):

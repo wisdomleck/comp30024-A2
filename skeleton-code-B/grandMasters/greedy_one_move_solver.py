@@ -11,14 +11,16 @@ class SillyMoveChooserAI:
     def __init__(self, player):
         self.us = player
 
-        if player == "UPPER":
+        if self.us == "UPPER":
             self.opponent = "LOWER"
         else:
             self.opponent = "UPPER"
 
     """ Chooses next move based on criteria on the board. Doesn't look past 1 move """
     def choose_next_move(self, board):
-        """ For now, play a set opening in order to gain space """
+        """ For now, play a set opening in order to gain space
+            ***ASSUMES WE ARE ALWAYS LOWER***
+        """
         if board.turn == 0:
             return ("THROW", "r", (-4, 0))
         if board.turn == 1:
@@ -75,7 +77,12 @@ class SillyMoveChooserAI:
         if dist_closing_moves:
             return random.choice(dist_closing_moves)
         # Otherwise just play random
-        return random.choice(board.generate_turns())
+        upper, lower = board.generate_turns()
+
+        if self.us == "UPPER":
+            return random.choice(upper)
+        else:
+            return random.choice(lower)
 
     """ Removes moves which result in us having one less token """
     def remove_suicide_moves(self, moves, board):

@@ -1,6 +1,8 @@
 from board import Board
-from linearprograms import solve_game, get_alpha, get_beta
+from linearprograms import solve_game
 import numpy as np
+from itertools import product
+import random
 class Graph:
     """
     Contains the root node which in turns contains the current in-game board.
@@ -67,7 +69,21 @@ class Node:
     def __init__(self, board, player):
         self.player = player
         self.board = board
-        self.adjacent_nodes = []
+
+    def adjacent_nodes(self):
+        moves = 0
+        """Generate adjacent nodes to the current nodes, where a node is adjacent
+        if its board is reachable with a single move from the current node's board."""
+        adjacents = []
+        upper_moves, lower_moves = self.board.generate_turns()
+        for umove in upper_moves:
+            for lmove in lower_moves:
+                moves += 1
+                boardcopy = self.board.apply_turn(umove, lmove)
+                adjacents.append(Node(boardcopy))
+        print(moves)
+        print(len(upper_moves), len(lower_moves))
+        return adjacents
 
     def is_terminal(self):
         return self.board.is_draw() or self.board.is_win("UPPER") or self.board.is_win("LOWER")

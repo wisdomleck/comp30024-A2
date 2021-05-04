@@ -3,6 +3,8 @@ from copy import deepcopy
 
 COUNTERS = {'s':'p', 'p':'r', 'r':'s'}
 COUNTERED = {'p':'s', 'r':'p', 's':'r'}
+
+SLIDE_DIRECTIONS = [(0,1), (-1,1), (-1,0), (0,-1), (1,-1), (1,0)]
 class Board:
     def __init__(self, thrown_uppers, thrown_lowers, unthrown_uppers, unthrown_lowers, turn, move):
         # Dictionaries to hold upper and lower pieces. Key: piece types, value: positions
@@ -36,7 +38,7 @@ class Board:
         self.remaining_tokens(other) == 1
 
     def is_draw(self):
-        return not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER") or\
+        return (not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER")) or\
         self.has_invincible("UPPER") and self.has_invincible("LOWER") or self.turn >= 360
 
     """ Returns the result of the game, from the perspective of the current board.
@@ -46,29 +48,15 @@ class Board:
         -1 - win for LOWER
     """
     def game_result(self):
-
-        if self.unthrown_uppers == 0 and not list(chain.from_iterable(self.thrown_uppers.values()))\
-        and (self.unthrown_lowers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
+        if self.is_win("UPPER"):
+            return 1
+        elif self.is_win("LOWER"):
             return -1
 
-        if self.unthrown_lowers == 0 and not list(chain.from_iterable(self.thrown_lowers.values()))\
-        and (self.unthrown_uppers != 0 or list(chain.from_iterable(self.thrown_uppers.values()))):
-            return 1
-
-        if self.has_invincible("UPPER") and self.has_invincible("LOWER"):
+        if self.is_draw():
             return 0
-
-        if self.has_invincible("UPPER") and self.remaining_tokens("LOWER") == 1 and not self.has_invincible("LOWER"):
-            return 1
-
-        if self.has_invincible("LOWER") and self.remaining_tokens("UPPER") == 1 and not self.has_invincible("UPPER"):
-            return -1
-
-        if self.turn >= 360:
-            return 0
-
-        # Somehow this gets triggered when is_terminal is True
-        return 9999
+        # If somehow this gets triggered
+        return 7777
 
 
     def remaining_tokens(self, player):
@@ -92,42 +80,111 @@ class Board:
                 return True
         return False
 
-    """ seems wasteful to make a new board? """
-    def apply_turn(self, upper_move, lower_move):
-        """
-        Given an upper and lower move, create the resultant board from
-        apply these moves to the current board.
-        """
+
+
+    """ NEED TO HANDLE CAPTURES FOR update FUNCTIONS """
+
+    """ Updates the corresponding dictionary with a slide or swing move """
+    def update_slide_swing(self, dict, from_coord, to_coord):
+        for key in dict.keys():
+            for tile in dict[key]:
+                if tile == from_coord:
+                    dict[key].remove(from_coord)
+                    dict[key].append(to_coord)
+                    return key
+
+    """ Updates the dictionary with a throw move """
+    def update_throw(self, dict, piece, to):
+        dict[piece].append(to)
+        return piece
+
+    """ After the simultaneous move, resolve any captures that occurred """
+    """ pass in moves that were made that turn """
+    def resolve_conflicts(self, upper_thrown, lower_thrown, upper_move, lower_move):
+        # Upper_move, lower_move in form of (piecetype, newcoord)
+        upper_piecetype = upper_move[0]
+        upper_newcoord = upper_move[1]
+        lower_piecetype = lower_move[0]
+        lower_newcoord = lower_move[1]
+
+        # Pieces to remove
+        remove_list_upper = set()
+        remove_list_lower = set()
+
+        # See if upper_move or lower_move is a suicide or not
+        if upper_newcoord in upper_thrown[COUNTERED[upper_piecetype]]:
+            remove_list_upper.add((upper_piecetype, upper_newcoord))
+        if upper_newcoord in lower_thrown[COUNTERED[upper_piecetype]]:
+            remove_list_upper.add((upper_piecetype, upper_newcoord))
+
+        #print("LOWER PIECETYPE", lower_piecetype)
+        #print("LOWER_MOVE: ", lower_move)
+        if lower_newcoord in upper_thrown[COUNTERED[lower_piecetype]]:
+            remove_list_lower.add((lower_piecetype, lower_newcoord))
+        if lower_newcoord in lower_thrown[COUNTERED[lower_piecetype]]:
+            remove_list_lower.add((lower_piecetype, lower_newcoord))
+
+        # See if upper_move or lower_move captured anything or not
+        if upper_newcoord in upper_thrown[COUNTERS[upper_piecetype]]:
+            remove_list_upper.add((COUNTERS[upper_piecetype], upper_newcoord))
+        if upper_newcoord in lower_thrown[COUNTERS[upper_piecetype]]:
+            remove_list_lower.add((COUNTERS[upper_piecetype], upper_newcoord))
+
+        if lower_newcoord in upper_thrown[COUNTERS[lower_piecetype]]:
+            remove_list_upper.add((COUNTERS[lower_piecetype], lower_newcoord))
+        if lower_newcoord in lower_thrown[COUNTERS[lower_piecetype]]:
+            remove_list_lower.add((COUNTERS[lower_piecetype], lower_newcoord))
+
+
+        # Remove these pieces that are captured
+        for element in remove_list_upper:
+            # Case for multiple instances of same piece on same tile
+            while element[1] in upper_thrown[element[0]]:
+                upper_thrown[element[0]].remove(element[1])
+
+        for element in remove_list_lower:
+            # Case for multiple instances of same piece on same tile
+            while element[1] in lower_thrown[element[0]]:
+                lower_thrown[element[0]].remove(element[1])
+
+        # Return these updated dictionaries
+        return upper_thrown, lower_thrown
+
+    """ Apply a upper and lower move to the board """
+    def apply_turn2(self, upper_move, lower_move):
         # Create deepcopy of token related variables
         new_thrown_uppers = deepcopy(self.thrown_uppers)
         new_thrown_lowers = deepcopy(self.thrown_lowers)
         unthrown_uppers = self.unthrown_uppers
         unthrown_lowers = self.unthrown_lowers
 
-        # In a slide or swing move, first remove piece from board before
-        # re-adding it to its correct location
+        # For upper's move
+        # Slide or swing
         if upper_move[0] != "THROW":
-            t = self.remove_piece(upper_move[1], new_thrown_uppers)
-            u_move = (t, upper_move[2])
+            coord_from = upper_move[1]
+            coord_to = upper_move[2]
+            upper_piecetype = self.update_slide_swing(new_thrown_uppers, coord_from, coord_to)
+        # Throw
         else:
-            u_move = (upper_move[1], upper_move[2])
+            upper_piecetype = self.update_throw(new_thrown_uppers, upper_move[1], upper_move[2])
             unthrown_uppers -= 1
 
+        # For lower's move:
+        # Slide or swing
         if lower_move[0] != "THROW":
-            t = self.remove_piece(lower_move[1], new_thrown_lowers)
-            l_move = (t, lower_move[2])
+            coord_from = lower_move[1]
+            coord_to = lower_move[2]
+            lower_piecetype = self.update_slide_swing(new_thrown_lowers, coord_from, coord_to)
+        # Throw
         else:
-            l_move = (lower_move[1], lower_move[2])
+            lower_piecetype = self.update_throw(new_thrown_lowers, lower_move[1], lower_move[2])
             unthrown_lowers -= 1
 
-        # Update deepcopied thrown piece dictionaries and create new board object
-        self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
-        self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
+        new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, upper_move[2]), (lower_piecetype, lower_move[2]))
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
-    """ Same as apply_turn, but for one player. Used for MCTS """
+    """ Single move at a time """
     def apply_turn_seq(self, move, player):
-
         # Create deepcopy of token related variables
         new_thrown_uppers = deepcopy(self.thrown_uppers)
         new_thrown_lowers = deepcopy(self.thrown_lowers)
@@ -139,80 +196,206 @@ class Board:
         """
         if player == "UPPER":
             if move[0] != "THROW":
-                t = self.remove_piece(move[1], new_thrown_uppers)
-                u_move = (t, move[2])
+                coord_from = move[1]
+                coord_to = move[2]
+                upper_piecetype = self.update_slide_swing(new_thrown_uppers, coord_from, coord_to)
+            # Throw
             else:
-                u_move = (move[1], move[2])
+                upper_piecetype = self.update_throw(new_thrown_uppers, move[1], move[2])
                 unthrown_uppers -= 1
 
-            self.add_piece(u_move, new_thrown_uppers, new_thrown_lowers)
-
         elif player == "LOWER":
-
             if move[0] != "THROW":
-                t = self.remove_piece(move[1], new_thrown_lowers)
-                l_move = (t, move[2])
+                coord_from = move[1]
+                coord_to = move[2]
+                lower_piecetype = self.update_slide_swing(new_thrown_lowers, coord_from, coord_to)
+            # Throw
             else:
-                l_move = (move[1], move[2])
+                lower_piecetype = self.update_throw(new_thrown_lowers, move[1], move[2])
                 unthrown_lowers -= 1
 
-            self.add_piece(l_move, new_thrown_lowers, new_thrown_uppers)
-
+        # Hacky method to update move for only one player
+        if player == "UPPER":
+            new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, move[2]), ("r", (5,5))) # impossible lower move
+        elif player == "LOWER":
+            new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, ("r", (5,5)), (lower_piecetype, move[2])) # impossible upper move
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, None)
 
 
-    def add_piece(self, piece, mover_dict, other_dict):
-        """
-        Piece is a tuple with containing the piece's token type and position.
-        This function adds such a token to the required position, removing any
-        token that is destroyed as a result.
-        """
-
-        # Get type of token which counters and is countered by added token.
-        token, pos = piece
-        token_g = COUNTERS[token]
-        token_b = COUNTERED[token]
-
-        # If counter token at the position, do nothing.
-        if pos in mover_dict[token_b] or pos in other_dict[token_b]:
-             return
-
-        # Remove any instance of countered tokens from the position and add
-        # new token to position.
-        mover_dict[token_g] = [p for p in mover_dict[token_g] if p != pos]
-        other_dict[token_g] = [p for p in other_dict[token_g] if p != pos]
-        mover_dict[token].append(pos)
-
-    def remove_piece(self, pos, mover_dict):
-        """
-        Remove token exisiting on input position from the movers thrown dictionary.
-        Return the token type.
-        """
-
-        for key,value in mover_dict.items():
-            if pos in value:
-                value.remove(pos)
-                return key
 
 
-    # Assumes the turn is valid but checks
-    def check_turn(self, upper_move, lower_move):
-        return
 
-    """ The moves passed into the sequential version of MCTS """
-    def generate_seq_turn(self):
-        lower_moves = {"THROWS": [], "SLIDES": [], "SWINGS": []}
-        upper_moves = {"THROWS": [], "SLIDES": [], "SWINGS": []}
+    """ GENERATE GREEDY MOVESETS FOR MCTS """
+    """ make a function that returns a list of moves by priority? then take first x?"""
+    """ Determines capture moves for a player """
+    """ Problems list:
+        - can jitter due to escaping slide then closing distance
+        - doesn't prioritise any moves over the other (just need random for mcts)
+    """
 
-        lower_moves["THROWS"] = self.generate_throws("LOWER")
-        lower_moves["SLIDES"] = self.generate_slides(self.thrown_lowers)
-        lower_moves["SWINGS"] = self.generate_swings(self.thrown_lowers)
+    """ determines greedy moves for both """
+    def determine_greedy_moves_both(self):
+        all_moves = self.generate_turns()
+        uppermoves = self.determine_greedy_moves("UPPER", all_moves)
+        lowermoves = self.determine_greedy_moves("LOWER", all_moves)
+        return uppermoves, lowermoves
 
-        upper_moves["THROWS"] = self.generate_throws("UPPER")
-        upper_moves["SLIDES"] = self.generate_slides(self.thrown_uppers)
-        upper_moves["SWINGS"] = self.generate_swings(self.thrown_uppers)
+    """ determines greedy moves for a single player"""
+    def determine_greedy_moves(self, player, all_moves):
+        moves = []
 
-        return {"UPPER": upper_moves, "LOWER": lower_moves}
+        # Adds 2 sec
+        throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
+        moves += throw_captures + slide_captures
+
+        # If no captures, look for dist moves
+        if not moves:
+            moves += self.determine_dist_moves(player, all_moves)
+
+        # If no captures and dist moves, then find slide escapes
+        if not moves:
+            #adds 1 sec
+            moves += self.determine_slide_escape_moves(player)
+
+        # Remove stupid greedy moves
+        moves = self.remove_suicide_moves(moves, player)
+
+        # if nothing, just return all other possible moves
+        if not moves:
+            if player == "UPPER":
+                return all_moves[0]
+            else:
+                return all_moves[1]
+        # adds 0.1 sec?
+        return moves
+
+    def determine_capture_moves(self, player, all_moves):
+
+        upper_moves, lower_moves = all_moves
+
+        if player == "UPPER":
+            opponent = "LOWER"
+            own_moves = upper_moves
+        else:
+            opponent = "UPPER"
+            own_moves = lower_moves
+
+        #print(own_moves)
+        slide_capture_moves = []
+        throw_capture_moves = []
+
+        #print("UPPER:", self.thrown_uppers)
+        #print("LOWER:", self.thrown_lowers)
+        #print(own_moves)
+        for move in own_moves:
+            next_board = self.apply_turn_seq(move, player)
+            if next_board.remaining_tokens(opponent) < self.remaining_tokens(opponent):
+                if move[0] == "THROW":
+                    throw_capture_moves.append(move)
+                else:
+                    slide_capture_moves.append(move)
+
+        return slide_capture_moves, throw_capture_moves
+
+    def determine_dist_moves(self, player, all_moves):
+        upper_moves, lower_moves = all_moves
+
+        if player == "UPPER":
+            own_moves = upper_moves
+        else:
+            own_moves = lower_moves
+
+        dist_moves = []
+        for move in own_moves:
+            next_board = self.apply_turn_seq(move, player)
+            if next_board.get_min_distance_total(player) < self.get_min_distance_total(player):
+                # Only use slide moves to close dist, don't throw
+                if move[0] == "SLIDE":
+                    dist_moves.append(move)
+
+        return dist_moves
+
+
+    # Functions from assignment 1
+    def distance(self, coord1, coord2):
+        (r1, c1) = coord1
+        (r2, c2) = coord2
+
+        dr = r1 - r2
+        dc = c1 - c2
+        if (dr < 0 and dc < 0) or (dr > 0 and dc > 0):
+            return abs(dr + dc)
+        else:
+            return max(abs(dr), abs(dc))
+
+    # Returns total of min distance of every piece to its counter
+    # This min distance effectively just focusses on the min distnace pairing
+    def get_min_distance_total(self, player):
+        # determine which pieces we got
+        if player == "UPPER":
+            our_pieces = self.thrown_uppers
+            enemy_pieces = self.thrown_lowers
+        else:
+            our_pieces = self.thrown_lowers
+            enemy_pieces = self.thrown_uppers
+
+        total = 0
+
+        # For each piecetype in our_pieces find its min distance to an enemy
+        for key in our_pieces.keys():
+            if enemy_pieces[COUNTERS[key]]:
+                # If enemy piece exists for our piece, go through all pairings of tiles and find the min dist
+                mindist = 100000
+                for tile in our_pieces[key]:
+                    for tile2 in enemy_pieces[COUNTERS[key]]:
+                        dist = self.distance(tile, tile2)
+                        if dist < mindist:
+                            mindist = dist
+            # If no enemies found, add 0
+            else:
+                mindist = 0
+
+            total += mindist
+        return total
+
+    """ Removes suicide moves from our moveset """
+    def remove_suicide_moves(self, moves, player):
+        for move in moves:
+            newboard = self.apply_turn_seq(move, player)
+            if newboard.remaining_tokens(player) < self.remaining_tokens(player):
+                moves.remove(move)
+
+        return moves
+
+    """ Determine current pieces that are in danger, return these tiles """
+    def determine_slide_escape_moves(self, player):
+        # determine which pieces we got
+        if player == "UPPER":
+            our_pieces = self.thrown_uppers
+            enemy_pieces = self.thrown_lowers
+        else:
+            our_pieces = self.thrown_lowers
+            enemy_pieces = self.thrown_uppers
+
+        escape_moves = []
+        available_tiles = [(r,q) for r in range(-4,5) for q in range(-4,5) if -r-q in range(-4,5)]
+        # Determine in danger by enemy slides, ie find pieces with their counter distance 1
+        for key in our_pieces.keys():
+            if enemy_pieces[COUNTERED[key]]:
+                for tile in our_pieces[key]:
+                    # Determine if theres an adjacent enemy counter piece
+                    for tile2 in enemy_pieces[COUNTERED[key]]:
+                        if self.distance(tile, tile2) == 1:
+                            # Find a move that increases distance to 2
+                            for direction in SLIDE_DIRECTIONS:
+                                newtile = (tile[0] + direction[0], tile[1] + direction[1])
+                                if newtile not in available_tiles:
+                                    continue
+                                elif self.distance(newtile, tile2) == 2:
+                                    escape_moves.append(("SLIDE", tile, newtile))
+
+        return escape_moves
+
 
 
     def generate_turns(self):
@@ -254,7 +437,7 @@ class Board:
                 return throws
             # Restrict r axis range based off off UNTHROWN TOKENS.
             # WHY -3?
-            max_r = min(5, -3 + (9 - self.unthrown_uppers))
+            max_r = min(5, -3 + (9 - self.unthrown_lowers))
             ran_r = range(-4, max_r)
         # Generate all positions where the given playe may throw a token
         available_tiles = [(r,q) for r in ran_r for q in ran_q if -r-q in ran_q]

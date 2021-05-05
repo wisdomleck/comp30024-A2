@@ -8,40 +8,66 @@ class Graph:
     Contains the root node which in turns contains the current in-game board.
     """
     def __init__(self, player):
-        self.player = player
         # Game starts with no thrown tokens
         empty_start = {'s':[],'p':[], 'r':[]}
         start_board = Board(empty_start, empty_start, 9, 9, 0, None)
-        self.root = Node(start_board)
+        self.root = Node(start_board, self.player)
 
     def update_root(self, root):
         self.root = root
 
-    def SM_solver(self, state):
+    def SM_solver(self, state, alpha, beta):
         if state.is_terminal():
-            if state.board.is_win(self.player):
-                return 1
-            elif state.board.is_draw():
-                return 0
-            else:
-                return -1
+            return state.eval()
 
-        if self.player == "UPPER":
-            player_moves, opponent_moves = state.board.generate_turns()
-        else:
-            opponent_moves, player_moves = state.board.generate_turns()
+        moves = state.generate_nodes()
+        O, P = self.bound(moves, alpha, beta)
+        d_rows = d_cols = []
+        for m in range(len(moves)):
+            for n in range(len(moves[m])):
+                if m not in d_rows and n not in d_cols:
+                    a = get_alpha(O, P, m, n)
+                    b = get_beta(O, P, m, n)
+                    q = moves[m,n]
 
-        sim_matrix = []
-        for m in player_moves:
-            sim_row = []
-            for n in opponent_moves:
-                new_node = self.state.generate_node(self.player, m, n)
-                sim_row.append(SM_solver, new_node)
-        return solve_game(sim_matrix)[1]
+                    if a >= b:
+                        v = SM_solver(q, a, a + 0.01)
+                        if v <= a:
+                            d_rows.append(m)
+                            O = np.delete(O, m, axis = 0)
+                            P = np.delete(P, m, axis = 0)
+
+                        else:
+                            d_cols.append(n)
+                            O = np.delete(O, n, axis = 1)
+                            P = np.delete(P, n, axis = 1)
+
+                    else:
+                        v = SM_solver(q, a, b)
+                        if v <= a:
+                            d_rows.append(m)
+                            O = np.delete(O, m, axis = 0)
+                            P = np.delete(P, m, axis = 0)
+                        elif v >= b:
+                            d_cols.append(n)
+                            O = np.delete(O, n, axis = 1)
+                            P = np.delete(P, n, axis = 1)
+                        else:
+                            O[m,n] = P[m,n] = v
+
+        return solve_game(P)
+
+        def bound(self, moves, alpha, beta):
+            O = np.ones(shape = moves.shape)
+            P = -O
+            O = np.append(O, np.full((O.shape[0], 1), beta), axis = 1)
+            P = np.append(P, np.full((1, P.shape[1]), alpha), axis = 0)
+            return O, P
 
 
 class Node:
-    def __init__(self, board):
+    def __init__(self, board, player):
+        self.player = player
         self.board = board
 
     def adjacent_nodes(self):
@@ -62,8 +88,27 @@ class Node:
     def is_terminal(self):
         return self.board.is_draw() or self.board.is_win("UPPER") or self.board.is_win("LOWER")
 
-    def generate_node(self, player, p, o):
-        if player == "UPPER":
-            return Node(self.board.apply_turn(p, o))
-        else:
-            return Node(self.board.apply_turn(o, p))
+    def generate_nodes(self):
+        u_moves, l_move = self.board.generate_turns()
+        moves = np.empty(shape = (len(u_move), len(l_move)))
+
+        for m in range(len(u_move)):
+            for n in range(len(l_move)):
+                new_node = self.board.apply_turn(u_move[m], l_move[n])
+                moves[m, n] = new_node
+        if self.player == "UPPER":
+            return moves
+        return moves.T
+
+    def upper_bound(self):
+        return
+
+    def lower_bound(self):
+        return
+
+    def eval(self):
+        if is_win(self.player):
+            return 1
+        if is_win(self.opponent):
+            return -1
+        else return 0

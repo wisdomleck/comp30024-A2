@@ -16,22 +16,67 @@ Students
 import numpy as np
 import scipy.optimize as opt
 
-def get_alpha(alpha, a, b, P, O):
-    P.append(np.full())
-    e = P[a, :]
-    f = O[:,b]
+def get_alpha(O, P, m, n):
+    P = np.delete(P, m, axis = 0)
+    O = np.delete(O, n, axis = 1)
 
-    P = np.delete(a, axis = 0)
-    P = np.delete(b, axis = 1)
-    zeros = np.zeros(len(e))
-    ones_1 = np.ones(len(e))
-    ones_2 = np.ones(shape = (len(e), len(e)))
+    e = P[:, n].flatten()
+    f = O[m, :-1].flatten()
 
+    P = np.delete(P,  n, axis = 1)
+    O = np.delete(O, m, axis = 0)
+
+    print("O:", O)
+    print("P:", P)
+    print("f:", f)
+    print("e:", e)
+
+    #Solve linear program
     res = opt.linprog(
-    c= -e, A_ub=P.T, b_ub=f, A_eq = ones_2,
-    b_eq = ones_1, bounds = (zeros, ones_1)
+        c= -e, A_ub= -P.T, b_ub= -f,
+        A_eq = np.ones((1,len(e))),
+        b_eq = [1], bounds = (0, 1),
     )
 
+    """print(res.success)
+    print(res.x)"""
+
+    if res.success:
+        print(res.x)
+        return -res.fun
+    return -2
+
+def get_beta(O, P, m, n):
+    P = np.delete(P, a, axis = 0)
+    O = np.delete(O, b, axis = 1)
+
+    f = P[:-1, n].flatten()
+    e = O[m, :].flatten()
+
+    P = np.delete(P,  n, axis = 1)
+    O = np.delete(O, m, axis = 0)
+
+    print("O:", O)
+    print("P:", P)
+    print("f:", f)
+    print("e:", e)
+
+    res = opt.linprog(
+        c = e, A_ub = O, b_ub = f,
+        A_eq = np.ones((1, len(e))),
+        b_eq = [1], bounds = (0, 1)
+    )
+
+    """
+    A_ub = O, b_ub = f,
+    """
+    """print(res.success)
+    print(res.x)"""
+
+    if res.success:
+        print(res.x)
+        return res.fun
+    return 2
 
 def solve_game(V, maximiser=True, rowplayer=True):
     """
@@ -70,8 +115,10 @@ def solve_game(V, maximiser=True, rowplayer=True):
         V = -V
     m, n = V.shape
     # ensure positive
+
     c = -V.min() + 1
     Vpos = V + c
+
     # solve linear program
     res = opt.linprog(
         np.ones(n),
@@ -81,7 +128,9 @@ def solve_game(V, maximiser=True, rowplayer=True):
     if res.status:
         raise OptimisationError(res.message) # TODO: propagate whole result
     # compute strategy and value
+
     v = 1 / res.x.sum()
+
     s = res.x * v
     v = v - c # re-scale
     if not maximiser:
@@ -105,7 +154,7 @@ if __name__ == "__main__":
     print("soln:", *solve_game(RPS))
     print("true:", np.array([1/3, 1/3, 1/3]), 0.0)
     print()
-
+    """
     print("test: textbook example")
     # Hespanha textbook example (column player, minimiser)
     A = np.array([
@@ -122,4 +171,25 @@ if __name__ == "__main__":
     print("game:", V, sep="\n")
     print("soln:", *solve_game(V, maximiser=True))
     print("true:", "(any strategy)         ", -1.0)
-    print()
+    print()"""
+
+    O = np.ones(shape = (10, 10))
+    P = -O
+
+    O = np.append(O, np.full((O.shape[0], 1), 2), axis = 1)
+    P = np.append(P, np.full((1, P.shape[1]), -2), axis = 0)
+
+    """P[3,:] = 0.2
+    P[:,7] = 0.1
+    P[2,2] = 0.1
+    P[9,3:6] = 0.3
+
+    O[0,1:6] = -0.3
+    O[8,8] = -0.3
+    O[:, 5] = -0.3"""
+
+    a = 4
+    b = 3
+    alpha_ab = get_alpha(O, P, a, b)
+    beta_ab = get_beta(O, P, a, b)
+    print(alpha_ab, beta_ab)

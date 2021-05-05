@@ -149,6 +149,7 @@ print(throw)
 print(singlemoveai.get_min_distance_total(testboard))
 print(singlemoveai.determine_dist_moves(testboard))""""""
 
+"""
 sdanger, tdanger = singlemoveai.determine_in_danger_pieces(testboard)
 print(tdanger)
 print(sdanger)
@@ -160,6 +161,11 @@ print("EMPTY BOARD TEST")
 thrown_uppers = {'s':[],'p':[], 'r':[]}
 thrown_lowers = {'s':[],'p':[], 'r':[]}
 testboard = Board(thrown_uppers, thrown_lowers, 1, 1, 50, None)
+<<<<<<< HEAD
+print(testboard.generate_turns())
+"""
+=======
 print(testboard.generate_turns()) """
 
 print("TIME TAKEN:", time.process_time() - start)
+>>>>>>> c8da29a75e3257637d20f3da38160488c18de3a3

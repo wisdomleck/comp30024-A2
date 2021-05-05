@@ -1,6 +1,7 @@
 from itertools import product, chain
 from copy import deepcopy
 
+
 COUNTERS = {'s':'p', 'p':'r', 'r':'s'}
 COUNTERED = {'p':'s', 'r':'p', 's':'r'}
 
@@ -228,6 +229,8 @@ class Board:
     """ Problems list:
         - can jitter due to escaping slide then closing distance
         - doesn't prioritise any moves over the other (just need random for mcts)
+        - greedy moves ordering might not make sense
+        - how to choose a subset of the greedy moves in a clever way?
     """
 
     """ determines greedy moves for both """
@@ -261,7 +264,7 @@ class Board:
                 moves = all_moves[1]
 
         # Restrict to n moves?
-        num_moves = 7
+        num_moves = 10
         if len(moves) > num_moves:
             moves = moves[:num_moves]
         return moves

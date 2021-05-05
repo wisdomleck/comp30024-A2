@@ -7,9 +7,16 @@ import numpy as np
 
 MOVETYPES = ["THROWS", "SLIDES", "SWINGS"]
 
-""" UCB1 formula for node selection in the MCTS algorithm """
-def ucb1_formula(value, games, c, N, ni):
-    return value/games + c*sqrt(log(N)/ni)
+"""
+FEATURES TO CHANGE:
+
+- Whether to add subsets of greedy moves or all
+- num moves considered
+- num simulations
+- move selection algorithm
+- optimisation
+
+"""
 
 
 """ Class to represent a node in the MCTS "statistics tree" """
@@ -237,4 +244,4 @@ class MCTSNode:
                 v.resultsLower[self.last_action[1]] += -result
             v.backpropagate(reward)
 
-        return self.best_child(c_param=0.05)
+        return self.best_child(c_param=0.1)

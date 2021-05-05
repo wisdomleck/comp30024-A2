@@ -34,7 +34,7 @@ class Player:
         if self.own_board.turn <= 4:
             return self.opening(self.us, self.own_board.turn)
         # put your code here
-        num_sims = len(self.ai.simultaneous_moves)*5
+        num_sims = len(self.ai.simultaneous_moves) * 20
         if self.us == "UPPER":
             node = self.ai.best_action(num_sims)
             return node.last_action[0]
@@ -53,9 +53,11 @@ class Player:
         """
         if self.us == "UPPER":
             self.own_board = self.own_board.apply_turn2(player_action, opponent_action)
+            # Make a new root node with the updated board. This is the AI for the next move
             self.ai = MCTSNode(self.own_board, self.us, None, None)
         else:
             self.own_board = self.own_board.apply_turn2(opponent_action, player_action)
+            # Make a new root node with the updated board. This is the AI for the next move
             self.ai = MCTSNode(self.own_board, self.us, None, None)
         #print("AFTER UPDATE:")
         #print(self.own_board)

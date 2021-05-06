@@ -264,7 +264,7 @@ class Board:
                 moves = all_moves[1]
 
         # Restrict to n moves?
-        num_moves = 10
+        num_moves = 12
         if len(moves) > num_moves:
             moves = moves[:num_moves]
         return moves

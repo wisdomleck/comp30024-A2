@@ -111,4 +111,5 @@ class Node:
             return 1
         if is_win(self.opponent):
             return -1
-        else return 0
+        else:
+             return 0

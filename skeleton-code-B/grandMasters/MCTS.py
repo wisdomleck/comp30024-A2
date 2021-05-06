@@ -15,7 +15,7 @@ FEATURES TO CHANGE:
 - num simulations
 - move selection algorithm
 - optimisation
-
+- we get rekt if they only use one throw then just move that piece around and dodge our throws
 """
 
 

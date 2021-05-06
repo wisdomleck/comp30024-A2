@@ -34,7 +34,7 @@ class Player:
         if self.own_board.turn <= 4:
             return self.opening(self.us, self.own_board.turn)
         # put your code here
-        num_sims = len(self.ai.simultaneous_moves) * 20
+        num_sims = len(self.ai.simultaneous_moves) * 30
         if self.us == "UPPER":
             node = self.ai.best_action(num_sims)
             return node.last_action[0]

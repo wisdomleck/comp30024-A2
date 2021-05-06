@@ -1,5 +1,5 @@
-from board import Board
-from linearprograms import solve_game
+from grandMasters.board import Board
+from grandMasters.linearprograms import solve_game
 import numpy as np
 from itertools import product
 import random
@@ -91,8 +91,13 @@ class Node:
         u_bound = 1
         opponent = "LOWER" if self.player == "UPPER" else "UPPER"
 
-        if node.board.can_have_invincible(self.player):
-            l_bound = 0
-        if node.board.can_have_invincible(opponent):
-            u_bound = 0
-        return l_bound, u_bound
+    def lower_bound(self):
+        return
+
+    def eval(self):
+        if is_win(self.player):
+            return 1
+        if is_win(self.opponent):
+            return -1
+        else:
+             return 0

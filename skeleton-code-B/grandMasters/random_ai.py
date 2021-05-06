@@ -13,7 +13,7 @@ class RandomAI:
     def choose_next_move(self, board):
         upper, lower = board.generate_turns()
         if self.us == "UPPER":
-            print(upper)
+            #print(upper)
             return random.choice(upper)
-        print(lower)
+        #print(lower)
         return random.choice(lower)

@@ -25,12 +25,6 @@ def get_alpha(O, P, m, n):
 
     P = np.delete(P,  n, axis = 1)
     O = np.delete(O, m, axis = 0)
-
-    print("O:", O)
-    print("P:", P)
-    print("f:", f)
-    print("e:", e)
-
     #Solve linear program
     res = opt.linprog(
         c= -e, A_ub= -P.T, b_ub= -f,
@@ -38,12 +32,9 @@ def get_alpha(O, P, m, n):
         b_eq = [1], bounds = (0, 1),
     )
 
-    """print(res.success)
-    print(res.x)"""
-
     if res.success:
-        print(res.x)
         return -res.fun
+
     return -2
 
 def get_beta(O, P, m, n):
@@ -56,26 +47,15 @@ def get_beta(O, P, m, n):
     P = np.delete(P,  n, axis = 1)
     O = np.delete(O, m, axis = 0)
 
-    print("O:", O)
-    print("P:", P)
-    print("f:", f)
-    print("e:", e)
 
     res = opt.linprog(
         c = e, A_ub = O, b_ub = f,
         A_eq = np.ones((1, len(e))),
         b_eq = [1], bounds = (0, 1)
     )
-
-    """
-    A_ub = O, b_ub = f,
-    """
-    """print(res.success)
-    print(res.x)"""
-
     if res.success:
-        print(res.x)
         return res.fun
+
     return 2
 
 def solve_game(V, maximiser=True, rowplayer=True):
@@ -173,11 +153,13 @@ if __name__ == "__main__":
     print("true:", "(any strategy)         ", -1.0)
     print()"""
 
-    O = np.ones(shape = (10, 10))
-    P = -O
+    O = np.random.uniform(low = -1, high = 1, size = (100,100))
+    P = np.random.uniform(low = -1, high = 1, size = (100,100))
 
-    O = np.append(O, np.full((O.shape[0], 1), 2), axis = 1)
-    P = np.append(P, np.full((1, P.shape[1]), -2), axis = 0)
+    P = np.append(P, np.full((1, P.shape[1]), 0), axis = 0)
+    O = np.append(O, np.full((O.shape[0], 1), 0), axis = 1)
+
+    print(O, P)
 
     """P[3,:] = 0.2
     P[:,7] = 0.1

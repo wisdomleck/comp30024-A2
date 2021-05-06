@@ -70,20 +70,6 @@ class Node:
         self.player = player
         self.board = board
 
-    def adjacent_nodes(self):
-        moves = 0
-        """Generate adjacent nodes to the current nodes, where a node is adjacent
-        if its board is reachable with a single move from the current node's board."""
-        adjacents = []
-        upper_moves, lower_moves = self.board.generate_turns()
-        for umove in upper_moves:
-            for lmove in lower_moves:
-                moves += 1
-                boardcopy = self.board.apply_turn(umove, lmove)
-                adjacents.append(Node(boardcopy))
-        print(moves)
-        print(len(upper_moves), len(lower_moves))
-        return adjacents
 
     def is_terminal(self):
         return self.board.is_draw() or self.board.is_win("UPPER") or self.board.is_win("LOWER")
@@ -100,15 +86,13 @@ class Node:
             return moves
         return moves.T
 
-    def upper_bound(self):
-        return
+    def bound(self, node):
+        l_bound = -1
+        u_bound = 1
+        opponent = "LOWER" if self.player == "UPPER" else "UPPER"
 
-    def lower_bound(self):
-        return
-
-    def eval(self):
-        if is_win(self.player):
-            return 1
-        if is_win(self.opponent):
-            return -1
-        else return 0
+        if node.board.can_have_invincible(self.player):
+            l_bound = 0
+        if node.board.can_have_invincible(opponent):
+            u_bound = 0
+        return l_bound, u_bound

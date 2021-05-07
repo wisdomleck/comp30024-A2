@@ -58,8 +58,34 @@ class Board:
             return 0
         # If somehow this gets triggered
         return 7777
+    # shrab functions ----------------------------------------------------------
+    def unthrown_diff(self):
+        return self.unthrown_uppers - self.unthrown_lowers
 
+    def thrown_diff(self):
+        return self.remaining_tokens("UPPER") - self.remaining_tokens("LOWER") - self.unthrown_diff()
 
+    def dominance_diff(self):
+        up_rps = (len(self.thrown_uppers["r"]), len(self.thrown_uppers["p"]), len(self.thrown_uppers["s"]))
+        low_rps = (len(self.thrown_lowers["r"]), len(self.thrown_lowers["p"]), len(self.thrown_lowers["s"]))
+
+        up_r = up_rps[0]/(low_rps[1] + up_rps[0] + 1)
+        up_p = up_rps[1]/(low_rps[2] + up_rps[1] + 1)
+        up_s = up_rps[2]/(low_rps[0] + up_rps[2] + 1)
+
+        low_r = low_rps[0]/(up_rps[1] + low_rps[0] + 1)
+        low_p = low_rps[1]/(up_rps[2] + low_rps[1] + 1)
+        low_s = low_rps[2]/(up_rps[0] + low_rps[2] + 1)
+        return (up_r + up_p + up_s) - (low_r + low_p + low_s)
+
+    def spread_difference(self, player):
+        upper_points = list(chain.from_iterable(self.thrown_uppers.values()))
+        upper_spread = np.std(upper_points, axis = 0)
+
+        lower_points = list(chain.from_iterable(self.thrown_lowers.values()))
+        lower_spread = np.std(lower_points, axis = 0)
+
+    # shrab functions ----------------------------------------------------------
     def remaining_tokens(self, player):
         if player == "UPPER":
             return len(list(chain.from_iterable(self.thrown_uppers.values()))) + self.unthrown_uppers
@@ -81,7 +107,11 @@ class Board:
                 return True
         return False
 
-
+    def copy_board(self, board):
+        new_board = {}
+        for key, value in board.items():
+            new_board[key] = value.copy()
+        return new_board
 
     """ NEED TO HANDLE CAPTURES FOR update FUNCTIONS """
 
@@ -187,8 +217,8 @@ class Board:
     """ Single move at a time """
     def apply_turn_seq(self, move, player):
         # Create deepcopy of token related variables
-        new_thrown_uppers = deepcopy(self.thrown_uppers)
-        new_thrown_lowers = deepcopy(self.thrown_lowers)
+        new_thrown_uppers = self.copy_board(self.thrown_uppers)
+        new_thrown_lowers = self.copy_board(self.thrown_lowers)
         unthrown_uppers = self.unthrown_uppers
         unthrown_lowers = self.unthrown_lowers
 

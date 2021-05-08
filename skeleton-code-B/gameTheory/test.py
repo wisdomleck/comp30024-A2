@@ -1,6 +1,7 @@
 from graph import Graph, Node
 from board import Board
 #from util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
+from evaluation import evaluate, evaluate_move, apply_move
 import random
 import time
 
@@ -79,7 +80,11 @@ board = Board(
                     move = None
                 )
 
-node = Node(board, "UPPER")
+
+evaluate(board)
+print(apply_move(board, ("THROW", "s", (0,-4)), "LOWER"))
+
+"""node = Node(board, "UPPER")
 print(node.eval())
 graph = Graph("UPPER")
 graph.root = node
@@ -87,3 +92,4 @@ graph.root = node
 start = time.process_time()
 print(graph.simple_best_move())
 print(time.process_time() - start)
+"""

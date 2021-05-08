@@ -17,24 +17,30 @@ class Graph:
     def update_root(self, player_move, opponent_move):
         self.root = self.root.generate_node(player_move, opponent_move)
 
-    def simple_best_move(self):
-        s, v, states = self.simple_SM_solver(self.root, 0)
-        choice = np.random.choice(range(len(s)), p = s)
-        pos = 0 if self.root.player == "UPPER" else 1
-        return states[choice, 0].board.move[pos]
+    def data_collection(self):
+        boards = []
+        self.simple_SM_solver(self.root, 0, boards)
+        return boards
 
-    def simple_SM_solver(self, state, depth):
+    def simple_SM_solver(self, state, depth, board):
+        if len(board) >= 10:
+            return None, None, None
 
-        if state.is_terminal() or depth == self.cutoff:
+        if state.is_terminal():
             return None, state.eval(), None
 
         sub_states = state.generate_nodes()
         payoff = np.empty(sub_states.shape)
         for m in range(sub_states.shape[0]):
             for n in range(sub_states.shape[1]):
-                _, u, _ = self.simple_SM_solver(sub_states[m, n], depth + 1)
+                _, u, _ = self.simple_SM_solver(sub_states[m, n], depth + 1, board)
+                if u == None:
+                    return None, None, None
+                if u != -1 and u != 0 and u != 1:
+                    board.append((sub_states[m,n].board, u))
                 payoff[m, n] = u
         s, v = solve_game(payoff)
+
         return s, v, sub_states
 
 
@@ -60,10 +66,6 @@ class Node:
             return Node(self.board.apply_turn(opponent_move, player_move), self.player)
 
     def refine_nodes(self, u_moves, l_moves):
-        u_i = np.random.choice(len(u_moves), size = int(0.1*len(u_moves)) + 1, replace = False)
-        u_moves = [u_moves[i] for i in u_i]
-        l_i = np.random.choice(len(l_moves), size = int(0.1*len(l_moves)) + 1, replace = False)
-        l_moves = [l_moves[i] for i in l_i]
         if self.player == "UPPER":
             return u_moves, l_moves
         else:

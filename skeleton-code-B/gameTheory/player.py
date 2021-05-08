@@ -1,6 +1,5 @@
-from grandMasters.graph import Graph
-from grandMasters.board import Board
-from grandMasters.greedy_one_move_solver import SillyMoveChooserAI
+from gameTheory.graph import Graph
+from gameTheory.board import Board
 
 class Player:
     def __init__(self, player):

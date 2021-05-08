@@ -11,7 +11,7 @@ class Graph:
         # Game starts with no thrown tokens
         empty_start = {'s':[],'p':[], 'r':[]}
         start_board = Board(empty_start, empty_start, 9, 9, 0, None)
-        self.root = Node(start_board, self.player)
+        self.root = Node(start_board, player)
 
     def update_root(self, root):
         self.root = root

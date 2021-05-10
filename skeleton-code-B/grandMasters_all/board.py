@@ -304,6 +304,7 @@ class Board:
         throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
         # should prioritise slides captures?
         moves += slide_captures
+
         if not throwsgap:
             moves += throw_captures
 

@@ -301,16 +301,19 @@ class Board:
 
         # Adds 2 sec
         # swing capture moves added as well
+
         throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
         # should prioritise slides captures?
         moves += slide_captures
-        if not throwsgap:
+
+        if not throwsgap and not moves:
             moves += throw_captures
 
-        # If no captures, look for dist moves and escaping moves
+        if not moves:
+            moves += self.determine_slide_escape_moves(player)
+
         if not moves:
             moves += self.determine_dist_moves(player, all_moves)
-            moves += self.determine_slide_escape_moves(player)
 
         # Remove stupid greedy moves
         moves = self.remove_suicide_moves(moves, player)
@@ -323,7 +326,7 @@ class Board:
                 moves = all_moves[1]
 
         # Restrict to n moves?
-        num_moves = 8
+        num_moves = 7
         if len(moves) > num_moves:
             moves = moves[:num_moves]
         return moves
@@ -371,7 +374,7 @@ class Board:
             next_board = self.apply_turn_seq(move, player)
             if next_board.get_min_distance_total(player) < self.get_min_distance_total(player):
                 # Only use slide moves to close dist, don't throw
-                if move[0] == "SLIDE":
+                if move[0] == "SLIDE" or move[0] == "SWING":
                     dist_moves.append(move)
 
         return dist_moves

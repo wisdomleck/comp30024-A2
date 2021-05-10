@@ -46,6 +46,30 @@ def spread_diff(board):
     l_ps = board.chain(board.thrown_lowers)
     return spread(u_ps) - spread(l_ps)
 
+def min_circuit(ps, qs):
+    # Number of tiles on the board
+    min_circuit_dist = 9
+    for p in ps:
+        dists = [distance(p, q) for q in qs]
+
+        if not dists:
+            return 0
+
+        avg_dist = np.sum(dists)/len(dists)
+        if avg_dist < min_circuit_dist:
+            min_circuit_dist = avg_dist
+    return min_circuit_dist
+
+def sum_min_dists(player_thrown, opponent_thrown):
+    sum_dists = 0
+    for key, value in player_thrown.items():
+        countered = opponent_thrown[COUNTERS[key]]
+        sum_dists += min_circuit(value, countered)
+    return sum_dists
+
+def capture_dist_difference(board):
+    return sum_min_dists(board.thrown_lowers, board.thrown_uppers) - sum_min_dists(board.thrown_uppers, board.thrown_lowers)
+
 # evaluates a board state with the option of evaluating after input move from input
 def evaluate(board):
     if board.is_win("UPPER"):
@@ -57,11 +81,12 @@ def evaluate(board):
 
     # Features: throw_diff, scissor_diff, paper_diff, rock_diff, median row
     ut_diff = unthrown_diff(board)
-    dom_diff = dominance_diff(board)
     t_diff = thrown_diff(board)
+    dom_diff = dominance_diff(board)
     s_diff = spread_diff(board)
+    c_diff = capture_dist_difference(board)
     #print(unthrown_diff, dom_diff, thrown_diff)
-    value = 0.2 * ut_diff + 0.25*dom_diff + 0.1*t_diff + 0.25*s_diff
+    value = 0.2 * ut_diff + 0.2*t_diff + 0.25*dom_diff + 0.05*s_diff + 0.05*c_diff
     capped_val = min(max(value, -1), 1)
 
     return capped_val

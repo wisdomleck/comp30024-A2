@@ -1,5 +1,5 @@
-from grandMasters.board import Board
-from grandMasters.linearprograms import solve_game
+from grandMasters_all.board import Board
+from grandMasters_all.linearprograms import solve_game
 import numpy as np
 from itertools import product
 import random

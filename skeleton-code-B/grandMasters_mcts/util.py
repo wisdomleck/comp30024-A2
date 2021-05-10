@@ -1,4 +1,4 @@
-from grandMasters.board import Board
+from grandMasters_mcts.board import Board
 
 """
 COMP30024 Artificial Intelligence, Semester 1, 2021

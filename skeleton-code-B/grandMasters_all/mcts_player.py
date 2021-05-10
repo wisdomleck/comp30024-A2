@@ -1,7 +1,7 @@
-from grandMasters.graph import Graph
-from grandMasters.board import Board
-from grandMasters.greedy_one_move_solver import SillyMoveChooserAI
-from grandMasters.MCTS import MCTSNode
+from grandMasters_all.graph import Graph
+from grandMasters_all.board import Board
+from grandMasters_all.greedy_one_move_solver import SillyMoveChooserAI
+from grandMasters_all.MCTS import MCTSNode
 
 class Player:
     def __init__(self, player):

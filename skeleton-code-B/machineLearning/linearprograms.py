@@ -16,68 +16,6 @@ Students
 import numpy as np
 import scipy.optimize as opt
 
-def get_alpha(O, P, m, n):
-    P = np.delete(P, m, axis = 0)
-    O = np.delete(O, n, axis = 1)
-
-    e = P[:, n].flatten()
-    f = O[m, :-1].flatten()
-
-    P = np.delete(P,  n, axis = 1)
-    O = np.delete(O, m, axis = 0)
-
-    print("O:", O)
-    print("P:", P)
-    print("f:", f)
-    print("e:", e)
-
-    #Solve linear program
-    res = opt.linprog(
-        c= -e, A_ub= -P.T, b_ub= -f,
-        A_eq = np.ones((1,len(e))),
-        b_eq = [1], bounds = (0, 1),
-    )
-
-    """print(res.success)
-    print(res.x)"""
-
-    if res.success:
-        print(res.x)
-        return -res.fun
-    return -2
-
-def get_beta(O, P, m, n):
-    P = np.delete(P, m, axis = 0)
-    O = np.delete(O, n, axis = 1)
-
-    f = P[:-1, n].flatten()
-    e = O[m, :].flatten()
-
-    P = np.delete(P,  n, axis = 1)
-    O = np.delete(O, m, axis = 0)
-
-    print("O:", O)
-    print("P:", P)
-    print("f:", f)
-    print("e:", e)
-
-    res = opt.linprog(
-        c = e, A_ub = O, b_ub = f,
-        A_eq = np.ones((1, len(e))),
-        b_eq = [1], bounds = (0, 1)
-    )
-
-    """
-    A_ub = O, b_ub = f,
-    """
-    """print(res.success)
-    print(res.x)"""
-
-    if res.success:
-        print(res.x)
-        return res.fun
-    return 2
-
 def solve_game(V, maximiser=True, rowplayer=True):
     """
     Given a utility matrix V for a zero-sum game, compute a mixed-strategy
@@ -126,7 +64,7 @@ def solve_game(V, maximiser=True, rowplayer=True):
         b_ub=-np.ones(m),
     )
     if res.status:
-        raise OptimisationError(res.message) # TODO: propagate whole result
+        return None, 0 # TODO: propagate whole result
     # compute strategy and value
 
     v = 1 / res.x.sum()

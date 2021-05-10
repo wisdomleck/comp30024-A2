@@ -70,9 +70,9 @@ board = Board(
                     )
 
 print(board.is_draw(), board.is_win("UPPER"), board.is_win("LOWER"), board.has_invincible("LOWER"), board.can_have_invincible("LOWER"))"""
-
+start = time.process_time()
 board = Board(
-                    thrown_uppers = {"s": [(0,3)], "p": [(0,0),(-1,1)], "r":[(-3,0)]},
+                    thrown_uppers = {"s": [], "p": [(0,0),(-1,1)], "r":[(-3,0)]},
                     thrown_lowers = {"s":[(0,2), (4,-4)], "p":[(-4,2), (-4,4)], "r":[(0,-4)]},
                     unthrown_uppers = 6,
                     unthrown_lowers = 5,
@@ -82,8 +82,8 @@ board = Board(
 
 
 evaluate(board)
-print(apply_move(board, ("THROW", "s", (0,-4)), "LOWER"))
-
+print(board)
+print(time.process_time() - start)
 """node = Node(board, "UPPER")
 print(node.eval())
 graph = Graph("UPPER")

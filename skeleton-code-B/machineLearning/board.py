@@ -20,6 +20,10 @@ class Board:
         # Move played to reach this board
         self.move = move
 
+    def __eq__(self, other):
+        return self.thrown_uppers == other.thrown_uppers and self.thrown_lowers == other.thrown_lowers and\
+        self.unthrown_uppers == other.unthrown_uppers and self.unthrown_lowers == other.unthrown_lowers
+
     def __str__(self):
         return f"Thrown Uppers: {self.thrown_uppers}\nUnthrown Uppers: {self.unthrown_uppers}\nThrown Lowers: {self.thrown_lowers}\nUnthrown Lowers: {self.unthrown_uppers}\nMove:{self.move}\n"
 
@@ -45,7 +49,7 @@ class Board:
 
     def is_draw(self):
         return (not self.remaining_tokens("UPPER") and not self.remaining_tokens("LOWER")) or\
-        self.has_invincible("UPPER") and self.has_invincible("LOWER") or self.turn >= 360
+        self.has_invincible("UPPER") and self.has_invincible("LOWER") or self.turn >= 30
 
     def chain(self, dict):
         return list(chain.from_iterable(dict.values()))
@@ -178,7 +182,7 @@ class Board:
         new_thrown_uppers, new_thrown_lowers = self.resolve_conflicts(new_thrown_uppers, new_thrown_lowers, (upper_piecetype, upper_move[2]), (lower_piecetype, lower_move[2]))
         return Board(new_thrown_uppers, new_thrown_lowers, unthrown_uppers, unthrown_lowers, self.turn+1, (upper_move, lower_move))
 
-
+    #def swap_players(self)
     def best_throw(self, player, pos):
         if player == "UPPER":
             player_thrown = self.thrown_uppers

@@ -299,6 +299,8 @@ class Board:
             moves = moves[:num_moves]
         return moves
 
+
+
     def determine_capture_moves(self, player, all_moves):
 
         upper_moves, lower_moves = all_moves
@@ -426,8 +428,6 @@ class Board:
 
         return escape_moves
 
-
-
     def generate_turns(self):
         """
         Generate all possible turns in the current board state where a turn
@@ -444,6 +444,40 @@ class Board:
         upper_moves += self.generate_swings(self.thrown_uppers)
         #print(len(lower_moves), len(upper_moves))
         return upper_moves, lower_moves
+
+
+    def best_throw(self, player, pos):
+        if player == "UPPER":
+            player_thrown = self.thrown_uppers
+            opponent_thrown = self.thrown_lowers
+        else:
+            player_thrown = self.thrown_lowers
+            opponent_thrown = self.thrown_uppers
+
+        ally_occupant = [key for key, value in player_thrown.items() if pos in value]
+        opp_occupant = [key for key, value in opponent_thrown.items() if pos in value]
+
+        bad_throws = []
+        if ally_occupant:
+            bad_throws.append(COUNTERS[ally_occupant[0]])
+            bad_throws.append(COUNTERED[ally_occupant[0]])
+        if opp_occupant:
+            bad_throws.append(COUNTERS[opp_occupant[0]])
+
+        good_throws = [t for t in "rps" if t not in bad_throws]
+
+        max_opp_token = -1
+        best_throw = None
+        for throw in good_throws:
+            if pos in opponent_thrown[COUNTERS[throw]]:
+                return throw
+
+            ps = len(opponent_thrown[COUNTERS[throw]])
+            if ps > max_opp_token:
+                max_opp_token = ps
+                best_throw = throw
+
+        return best_throw
 
     def generate_throws(self, player):
         """
@@ -475,10 +509,7 @@ class Board:
         # Convert from tile positions to 3-tuple move as defined in specs
         # Note the token type is unspecified for efficiency, this way only one
         # throw list is created.
-        throws = []
-        for token in COUNTERS.keys():
-            throws += [("THROW", token, rq) for rq in available_tiles]
-        return throws
+        return [("THROW", self.best_throw(player, rq), rq) for rq in available_tiles]
 
     def generate_slides(self, thrown_pieces):
         """

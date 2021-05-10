@@ -10,11 +10,7 @@ MOVETYPES = ["THROWS", "SLIDES", "SWINGS"]
 """
 FEATURES TO CHANGE:
 
-- Whether to add subsets of greedy moves or all
-- num moves considered
-- num simulations
-- move selection algorithm
-- optimisation
+- generate turns greedy
 - we get rekt if they only use one throw then just move that piece around and dodge our throws
 """
 
@@ -159,12 +155,7 @@ class MCTSNode:
 
             # Determine greedy moves then choose random move
             upper, lower = current_board.determine_greedy_moves_both()
-            """
-            print("TURN:", current_board.turn)
-            print("UPPER:", upper)
-            print("LOWER:", lower)
-            print("upper_thrown:", current_board.thrown_uppers)
-            print("lower_thrown:", current_board.thrown_lowers)"""
+
             rand_move_p1 = random.choice(upper)
             rand_move_p2 = random.choice(lower)
 

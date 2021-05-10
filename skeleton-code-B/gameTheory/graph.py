@@ -1,6 +1,6 @@
-from board import Board
-from linearprograms import solve_game, get_alpha, get_beta
-from evaluation import evaluate, evaluate_move
+from gameTheory.board import Board
+from gameTheory.linearprograms import solve_game, get_alpha, get_beta
+from gameTheory.evaluation import evaluate, evaluate_move
 import numpy as np
 
 class Graph:
@@ -12,7 +12,7 @@ class Graph:
         empty_start = {'s':[],'p':[], 'r':[]}
         start_board = Board(empty_start, empty_start, 9, 9, 0, None)
         self.root = Node(start_board, player)
-        self.cutoff = 3
+        self.cutoff = 2
 
     def update_root(self, player_move, opponent_move):
         self.root = self.root.generate_node(player_move, opponent_move)
@@ -60,9 +60,9 @@ class Node:
             return Node(self.board.apply_turn(opponent_move, player_move), self.player)
 
     def refine_nodes(self, u_moves, l_moves):
-        u_i = np.random.choice(len(u_moves), size = int(0.1*len(u_moves)) + 1, replace = False)
+        u_i = np.random.choice(len(u_moves), size = int(0.2*len(u_moves)) + 1, replace = False)
         u_moves = [u_moves[i] for i in u_i]
-        l_i = np.random.choice(len(l_moves), size = int(0.1*len(l_moves)) + 1, replace = False)
+        l_i = np.random.choice(len(l_moves), size = int(0.2*len(l_moves)) + 1, replace = False)
         l_moves = [l_moves[i] for i in l_i]
         if self.player == "UPPER":
             return u_moves, l_moves

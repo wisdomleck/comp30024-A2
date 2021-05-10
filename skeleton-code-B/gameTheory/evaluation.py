@@ -1,4 +1,4 @@
-from board import Board
+from gameTheory.board import Board
 import numpy as np
 
 COUNTERS = {'s':'p', 'p':'r', 'r':'s'}

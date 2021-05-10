@@ -19,7 +19,7 @@ def test_moves(root, depth):
     test_moves(random.choice(adjacents), depth + 1)"""
 
 
-
+"""
 draw_board = Board(
                     thrown_uppers = {"s": [], "p": [(0,0),(-1,1)], "r":[(-3,0), (2,-1)]}
                     thrown_lowers = {"s":[], "p":[(-4,2), (-4,4)], "r":[(0,-4)]}
@@ -36,7 +36,7 @@ print(testboard)
 """
 # MCTS TESTING HERE ----------------------------------------------------------------------------------------
 
-
+"""
 graph = Graph("UPPERS")
 
 board = graph.root.board
@@ -54,7 +54,7 @@ total_turns = 0
 
 total_value = 0
 
-"""
+
 for i in range(10):
     result, turns = mctsnode.rollout_random()
     if result == 1:

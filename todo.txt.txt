@@ -1,5 +1,0 @@
-need to do:
-
-decide on representation of board
-decide on initial algorithm
-divide some work

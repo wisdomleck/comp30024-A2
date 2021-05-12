@@ -1,5 +1,5 @@
 """
-Client program to instantiate a player class and 
+Client program to instantiate a player class and
 conduct a game of Chexers through the online battleground
 """
 import logging

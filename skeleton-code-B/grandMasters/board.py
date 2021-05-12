@@ -298,6 +298,7 @@ class Board:
         throw_captures, slide_captures = self.determine_capture_moves(player, all_moves)
         # should prioritise slides captures?
         moves += slide_captures
+
         if not throwsgap:
             moves += throw_captures
 
@@ -361,7 +362,7 @@ class Board:
             next_board = self.apply_turn_seq(move, player)
             if next_board.get_min_distance_total(player) < self.get_min_distance_total(player):
                 # Only use slide moves to close dist, don't throw
-                if move[0] == "SLIDE":
+                if move[0] == "SLIDE" or move[0] == "SWING":
                     dist_moves.append(move)
 
         return dist_moves

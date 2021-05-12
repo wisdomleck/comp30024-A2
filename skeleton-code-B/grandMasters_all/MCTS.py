@@ -33,12 +33,16 @@ class MCTSNode:
         self.resultsLower = defaultdict(lambda: 0)
 
         self.num_visits = 0
-        # In the current board, who's move is it?
+        # this is our player
         self.player = player
 
-        # Possible moves for upper and lower
-        throwsgap = (abs(self.board.unthrown_lowers-self.board.unthrown_uppers) <= 1)
-        self.simultaneous_moves = self.get_possible_moves_greedy(throwsgap)
+        # are we throwing too much?
+        if player == "UPPER":
+            self.throwsgap = ((self.board.unthrown_uppers-self.board.unthrown_lowers) >= -1)
+        else:
+            self.throwsgap = ((self.board.unthrown_lowers-self.board.unthrown_uppers) >= -1)
+
+        self.simultaneous_moves = self.get_possible_moves_greedy(self.throwsgap)
 
     """ Get possible moves from current state """
     def get_possible_moves(self):

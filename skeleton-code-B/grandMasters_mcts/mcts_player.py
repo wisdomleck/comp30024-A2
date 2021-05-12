@@ -1,6 +1,6 @@
 
-from grandMasters.board import Board
-from grandMasters.MCTS import MCTSNode
+from grandMasters_mcts.board import Board
+from grandMasters_mcts.MCTS import MCTSNode
 
 class Player:
     def __init__(self, player):
@@ -33,7 +33,7 @@ class Player:
         if self.own_board.turn <= 2:
             return self.opening(self.us, self.own_board.turn)
         # put your code here
-        num_sims = len(self.ai.simultaneous_moves) * 7
+        num_sims = len(self.ai.simultaneous_moves) * 10
         if self.us == "UPPER":
             node = self.ai.best_action(num_sims)
             return node.last_action[0]

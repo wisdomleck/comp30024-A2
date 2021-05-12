@@ -1,7 +1,7 @@
 
-from grandMasters_mcts.board import Board
+from grandMasters.board import Board
 import random
-from grandMasters_mcts.util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
+from grandMasters.util import print_board, print_slide, print_swing, reformat_board, part2_to_part1, part1_to_part2
 from collections import defaultdict
 import numpy as np
 

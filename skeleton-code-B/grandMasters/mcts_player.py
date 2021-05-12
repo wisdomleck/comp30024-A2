@@ -1,6 +1,6 @@
 
-from grandMasters_mcts.board import Board
-from grandMasters_mcts.MCTS import MCTSNode
+from grandMasters.board import Board
+from grandMasters.MCTS import MCTSNode
 
 class Player:
     def __init__(self, player):
@@ -58,12 +58,9 @@ class Player:
             self.own_board = self.own_board.apply_turn2(opponent_action, player_action)
             # Make a new root node with the updated board. This is the AI for the next move
             self.ai = MCTSNode(self.own_board, self.us, None, None)
-        #print("AFTER UPDATE:")
-        #print(self.own_board)
         # put your code here
 
     """ opening moves hardcoded """
-
     def opening(self, player, turn):
         if player == "UPPER":
             if turn == 0:
@@ -72,10 +69,7 @@ class Player:
                 return ("THROW", "r", (3,-3))
             elif turn == 2:
                 return ("THROW", "p", (3, -2))
-            """elif turn == 3:
-                return ("THROW", "s", (1, 0))
-            elif turn == 4:
-                return ("THROW", "r", (0, 1))"""
+
 
         elif player == "LOWER":
             if turn == 0:
@@ -84,7 +78,3 @@ class Player:
                 return ("THROW", "s", (-3, 0))
             if turn == 2:
                 return ("THROW", "p", (-3, -1))
-            """if turn == 3:
-                return ("THROW", "r", (-1, 4))
-            if turn == 4:
-                return ("THROW", "s", (0, -1))"""

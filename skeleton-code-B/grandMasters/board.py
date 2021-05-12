@@ -83,7 +83,7 @@ class Board:
             return 0
         # If somehow this gets triggered
         return 7777
-    # shrab functions ----------------------------------------------------------
+
     def unthrown_diff(self):
         return self.unthrown_uppers - self.unthrown_lowers
 
@@ -110,7 +110,6 @@ class Board:
         lower_points = list(chain.from_iterable(self.thrown_lowers.values()))
         lower_spread = np.std(lower_points, axis = 0)
 
-    # shrab functions ----------------------------------------------------------
     def remaining_tokens(self, player):
         if player == "UPPER":
             return len(list(chain.from_iterable(self.thrown_uppers.values()))) + self.unthrown_uppers
@@ -138,8 +137,6 @@ class Board:
             new_board[key] = value.copy()
         return new_board
 
-    """ NEED TO HANDLE CAPTURES FOR update FUNCTIONS """
-
     """ Updates the corresponding dictionary with a slide or swing move """
     def update_slide_swing(self, dict, from_coord, to_coord):
         for key in dict.keys():
@@ -155,7 +152,6 @@ class Board:
         return piece
 
     """ After the simultaneous move, resolve any captures that occurred """
-    """ pass in moves that were made that turn """
     def resolve_conflicts(self, upper_thrown, lower_thrown, upper_move, lower_move):
         # Upper_move, lower_move in form of (piecetype, newcoord)
         upper_piecetype = upper_move[0]
@@ -173,8 +169,6 @@ class Board:
         if upper_newcoord in lower_thrown[COUNTERED[upper_piecetype]]:
             remove_list_upper.add((upper_piecetype, upper_newcoord))
 
-        #print("LOWER PIECETYPE", lower_piecetype)
-        #print("LOWER_MOVE: ", lower_move)
         if lower_newcoord in upper_thrown[COUNTERED[lower_piecetype]]:
             remove_list_lower.add((lower_piecetype, lower_newcoord))
         if lower_newcoord in lower_thrown[COUNTERED[lower_piecetype]]:
@@ -341,13 +335,9 @@ class Board:
             opponent = "UPPER"
             own_moves = lower_moves
 
-        #print(own_moves)
         slide_capture_moves = []
         throw_capture_moves = []
 
-        #print("UPPER:", self.thrown_uppers)
-        #print("LOWER:", self.thrown_lowers)
-        #print(own_moves)
         for move in own_moves:
             next_board = self.apply_turn_seq(move, player)
             if next_board.remaining_tokens(opponent) < self.remaining_tokens(opponent):
@@ -529,7 +519,6 @@ class Board:
             if self.unthrown_lowers == 0:
                 return throws
             # Restrict r axis range based off off UNTHROWN TOKENS.
-            # WHY -3?
             max_r = min(5, -3 + (9 - self.unthrown_lowers))
             ran_r = range(-4, max_r)
         # Generate all positions where the given playe may throw a token
